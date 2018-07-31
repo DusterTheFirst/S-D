@@ -33,7 +33,7 @@ export default class CardComponent extends React.Component<IProps> {
                                                 Explorer.highlightMatches(this.props.card.name, search)
                                             }</div>
                                         </ContextMenuProvider>,
-                                        <ContextMenu id={`contextmenu-${this.props.groupid}-${this.props.id}`} key={1} theme="dark">
+                                        <ContextMenu id={`contextmenu-${this.props.groupid}-${this.props.id}`} key={1}>
                                             <Item>Delete</Item>
                                         </ContextMenu>
                                     ]

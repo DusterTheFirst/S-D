@@ -69,7 +69,7 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                             }</div>
                         </div>
                     </ContextMenuProvider>,
-                    <ContextMenu id={`contextmenu-${this.props.id}`} key={1} theme="dark">
+                    <ContextMenu id={`contextmenu-${this.props.id}`} key={1}>
                         <Item>Edit</Item>
                         <Separator/>
                         <Item>Delete</Item>

@@ -1,8 +1,8 @@
 import * as React from "react";
-import "react-contexify/dist/ReactContexify.min.css";
 import "./App.css";
 import CardGroup from "./Card/CardGroup";
 import Explorer from "./Explorer/Explorer";
+import "./react-contexify.css";
 
 export const CardGroupContext = React.createContext<CardGroup[]>([]);
 
