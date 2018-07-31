@@ -55,10 +55,10 @@
         "max-file-line-count": false,
         "max-line-length": false,
         "member-access": true,
-        "member-ordering": true,
+        "member-ordering": false,
         "new-parens": false,
-        "newline-before-return": true,
-        "newline-per-chained-call": true,
+        "newline-before-return": false,
+        "newline-per-chained-call": false,
         "no-angle-bracket-type-assertion": true,
         "no-any": true,
         "no-arg": true,
@@ -123,7 +123,10 @@
         "no-use-before-declare": true,
         "no-var-keyword": true,
         "no-var-requires": true,
-        "no-void-expression": true,
+        "no-void-expression": [
+            true,
+            "ignore-arrow-function-shorthand"
+        ],
         "number-literal-format": true,
         "object-literal-key-quotes": false,
         "object-literal-shorthand": true,
@@ -165,11 +168,15 @@
         "type-literal-delimiter": true,
         "typedef": true,
         "typedef-whitespace": true,
-        "typeof-compare": true,
         "unified-signatures": true,
         "use-default-type-parameter": true,
         "use-isnan": true,
-        "variable-name": true,
+        "variable-name": [
+            true,
+            "check-format",
+            "allow-leading-underscore",
+            "allow-pascal-case"
+        ],
         "whitespace": true
     }
 }

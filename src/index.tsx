@@ -9,3 +9,7 @@ ReactDOM.render(
     document.getElementById("root") as HTMLElement
 );
 registerServiceWorker();
+
+document.oncontextmenu = (e) => {
+    e.preventDefault();
+};
