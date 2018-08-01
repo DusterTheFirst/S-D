@@ -1,5 +1,5 @@
 import * as React from "react";
-import {  } from "react-contexify";
+import { ContextMenu, Item, Separator } from "react-contexify";
 import { faTimes } from "../../node_modules/@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "../../node_modules/@fortawesome/react-fontawesome";
 import { CardGroupContext } from "../App";
@@ -69,6 +69,8 @@ export default class Explorer extends React.Component<{}, IState> {
         }
     }
 
+    // TODO: PLACES TO ADD CARDS
+    // FIXME: ONE CONTEXT MENU FOR ALL GROUPS AND ONE FOR ALL CARDS
     public render() {
         return (
             <div className="explorer">
@@ -89,6 +91,29 @@ export default class Explorer extends React.Component<{}, IState> {
                             }
                         </CardGroupContext.Consumer>
                     </SearchContext.Provider>
+
+                    {/* Group context menu */}
+                    <ContextMenu id="group-contextmenu">
+                        <Item disabled={true}>Edit</Item>
+                        <Item disabled={true}>Add Card</Item>
+                        <Separator/>
+                        <Item disabled={true}>Download</Item>
+                        <Item disabled={true}>Render All</Item>
+                        <Item disabled={true}>Print All</Item>
+                        <Separator/>
+                        <Item disabled={true}>Delete</Item>
+                    </ContextMenu>
+
+                    {/* Card context menu */}
+                    <ContextMenu id="card-contextmenu">
+                        <Item disabled={true}>Duplicate</Item>
+                        <Separator/>
+                        <Item disabled={true}>Download</Item>
+                        <Item disabled={true}>Render</Item>
+                        <Item disabled={true}>Print</Item>
+                        <Separator/>
+                        <Item disabled={true}>Delete</Item>
+                    </ContextMenu>
                 </div>
             </div>
         );

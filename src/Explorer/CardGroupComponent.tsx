@@ -1,7 +1,7 @@
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
-import { ContextMenu, ContextMenuProvider, Item, Separator } from "react-contexify";
+import { ContextMenuProvider } from "../../node_modules/react-contexify";
 import ICard from "../Card/Card";
 import CardGroup from "../Card/CardGroup";
 import CardComponent from "./CardComponent";
@@ -35,8 +35,8 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
     public render() {
         return (
             <SearchContext.Consumer>{
-                search => [
-                    <ContextMenuProvider id={`contextmenu-${this.props.id}`} key={0}>
+                search => (
+                    <ContextMenuProvider id="group-contextmenu">
                         <div className="group" style={{
                             // Show the group if there are results inside of it
                             display: this.props.group.getCards().filter(this.cardFilter(search)).length > 0
@@ -68,13 +68,8 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                                     })
                             }</div>
                         </div>
-                    </ContextMenuProvider>,
-                    <ContextMenu id={`contextmenu-${this.props.id}`} key={1}>
-                        <Item>Edit</Item>
-                        <Separator/>
-                        <Item>Delete</Item>
-                    </ContextMenu>
-                ]
+                    </ContextMenuProvider>
+                )
             }</SearchContext.Consumer>
         );
     }

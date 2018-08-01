@@ -23,14 +23,14 @@ export default class App extends React.Component<{}, {
     constructor(props: {}, context?: {}) {
         super(props, context);
 
-        let cardgroup = new CardGroup("nutballs")
+        let cardgroup = new CardGroup("asdasdad")
             .addCard({
-                name: "supple"
+                name: "adfsasg"
             }).addCard({
                 class: "history",
-                name: "largebutt"
+                name: "hehe"
             }).addCard({
-                name: "peenus"
+                name: "ds"
             }).addCard({
                 name: "aaaa"
             }).addCard({
@@ -38,7 +38,7 @@ export default class App extends React.Component<{}, {
             }).addCard({
                 name: "help i need"
             }).addCard({
-                name: "homosex"
+                name: "qwetqtwt"
             }).addCard({
                 name: "nate"
             });
@@ -60,20 +60,20 @@ export default class App extends React.Component<{}, {
             }).addCard({
                 name: "zoppity"
             }).addCard({
-                name: "whamen are property"
+                name: "ahvfsjhafdjhgafds"
             });
 
-        let g2 = new CardGroup("mohammed")
+        let g2 = new CardGroup("rytrruyrtuy")
             .addCard({
                 name: "de se"
             }).addCard({
-                name: "succith"
+                name: "adsd"
             }).addCard({
                 name: "mien"
             }).addCard({
                 name: "gigantorum"
             }).addCard({
-                name: "kamph"
+                name: "rwer"
             }).addCard({
                 name: "and"
             }).addCard({
