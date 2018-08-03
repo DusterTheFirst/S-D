@@ -1,29 +1,52 @@
 import * as React from "react";
 import "./App.css";
+import ICard from "./Card/Card";
 import CardGroup from "./Card/CardGroup";
+import "./ContextMenu.css";
+import Editor from "./Editor/Editor";
 import Explorer from "./Explorer/Explorer";
-import "./react-contexify.css";
 
-export const CardGroupContext = React.createContext<CardGroup[]>([]);
-
-type SelectCardFn = (group: number, card: number) => () => void;
-export const SelectCardContext = React.createContext<SelectCardFn>(() => () => null);
-
-interface ISelection {
+export interface ISelection {
     card: number;
     group: number;
 }
-export const SelectedContext = React.createContext<ISelection>({ card: 0, group: 0 });
+export interface ICardController {
+    select(group: number, card?: number): void;
+    selectGenerator(group: number, card: number): () => void;
 
-export default class App extends React.Component<{}, {
+    addCard(group: number, card?: ICard): void;
+    addGroup(group: CardGroup): void;
+
+    removeCard(group: number, card: number): void;
+    removeGroup(group: number): void;
+
+    moveCard(group: number, card: number, newpos: number): void;
+
+    selection: ISelection;
+    groups: CardGroup[];
+}
+export const CardControllerContext = React.createContext<ICardController>({
+    addCard: () => void 0,
+    addGroup: () => void 0,
+    groups: [],
+    moveCard: () => void 0,
+    removeCard: () => void 0,
+    removeGroup: () => void 0,
+    select: () => void 0,
+    selectGenerator: () => () => void 0,
+    selection: { card: 0, group: 0 }
+});
+
+interface IAppState {
     groups: CardGroup[];
     selectedcard: number;
     selectedgroup: number;
-}> {
+}
+export default class App extends React.Component<{}, IAppState> {
     constructor(props: {}, context?: {}) {
         super(props, context);
 
-        let cardgroup = new CardGroup("asdasdad")
+        let cardgroup = new CardGroup({name: "asdasdad"})
             .addCard({
                 name: "adfsasg"
             }).addCard({
@@ -43,7 +66,7 @@ export default class App extends React.Component<{}, {
                 name: "nate"
             });
 
-        let g1 = new CardGroup("yeet")
+        let g1 = new CardGroup({name: "yeet"})
             .addCard({
                 name: "yote"
             }).addCard({
@@ -63,8 +86,40 @@ export default class App extends React.Component<{}, {
                 name: "ahvfsjhafdjhgafds"
             });
 
-        let g2 = new CardGroup("rytrruyrtuy")
+        let g2 = new CardGroup({name: "rytrruyrtuy"})
             .addCard({
+                name: "de se"
+            }).addCard({
+                name: "adsd"
+            }).addCard({
+                name: "mien"
+            }).addCard({
+                name: "gigantorum"
+            }).addCard({
+                name: "rwer"
+            }).addCard({
+                name: "and"
+            }).addCard({
+                name: "so"
+            }).addCard({
+                name: "it was"
+            }).addCard({
+                name: "de se"
+            }).addCard({
+                name: "adsd"
+            }).addCard({
+                name: "mien"
+            }).addCard({
+                name: "gigantorum"
+            }).addCard({
+                name: "rwer"
+            }).addCard({
+                name: "and"
+            }).addCard({
+                name: "so"
+            }).addCard({
+                name: "it was"
+            }).addCard({
                 name: "de se"
             }).addCard({
                 name: "adsd"
@@ -86,18 +141,16 @@ export default class App extends React.Component<{}, {
             castingTime: "1",
             class: "2",
             color: "3",
+            components: ["v", "s", "a"],
             description: "4",
             duration: "5",
             extDescription: "6",
             image: "7",
-            level: 8,
-            mComponent: true,
+            level: "8",
             name: "10",
             physicalComponents: "11",
             range: "12",
-            sComponent: true,
             type: "14",
-            vComponent: true
         };
 
         this.state = {
@@ -111,49 +164,108 @@ export default class App extends React.Component<{}, {
         };
     }
 
+    private readonly selectCard = (group: number, card = -1) =>
+        this.setState({
+            selectedcard: card,
+            selectedgroup: group
+        })
+
     private readonly selectCardGenerator = (group: number, card: number) =>
-        () => {
+        () => this.selectCard(group, card)
+
+    private readonly moveCard = (group: number, card: number, newpos: number) =>
+        this.setState(prevState => {
+            let groups = prevState.groups;
+
+            groups[group].moveCard(card, newpos);
+
+            return {
+                groups
+            };
+        })
+
+    private readonly addCard = (group: number, card?: ICard) =>
+        this.setState(prevState => {
+            let groups = prevState.groups;
+
+            groups[group].addCard(card);
+
+            return {
+                groups
+            };
+        })
+
+    private readonly removeCard = (group: number, card: number) =>
+        this.setState(prevState => {
+            let groups = prevState.groups;
+
+            groups[group].removeCard(card);
+
+            return {
+                groups
+            };
+        })
+
+    private readonly addGroup = (group: CardGroup) => {
+        this.setState(prevState => ({
+            groups: [...prevState.groups, group]
+        }));
+    }
+
+    private readonly removeGroup = (group: number) =>
+        this.setState(prevState => {
+            let groups = prevState.groups;
+
+            groups.splice(group, 1);
+
+            return {
+                groups
+            };
+        })
+
+    public shouldComponentUpdate(nextProps: {}, nextState: IAppState): boolean {
+        if (nextState.selectedgroup === -1 && nextState.selectedcard === -1) {
+            return true;
+        } else if (nextState.selectedgroup >= nextState.groups.length) {
+            this.setState(prevState => ({
+                selectedgroup: prevState.groups.length - 1
+            }));
+            return false;
+        } else if (nextState.groups[nextState.selectedgroup] && nextState.selectedcard >= nextState.groups[nextState.selectedgroup].getRawCards().length) {
             this.setState({
-                selectedcard: card,
-                selectedgroup: group
+                selectedcard: nextState.groups[nextState.selectedgroup].getRawCards().length - 1
             });
+            return false;
         }
+        return true;
+    }
 
     public render() {
-        let selectedgroup = this.state.groups[this.state.selectedgroup];
-
         return (
             <div className="app">
-                <CardGroupContext.Provider value={this.state.groups}>
-                <SelectCardContext.Provider value={this.selectCardGenerator}>
-                <SelectedContext.Provider value={{ card: this.state.selectedcard, group: this.state.selectedgroup }}>
+                <CardControllerContext.Provider value={{
+                    addCard: this.addCard,
+                    addGroup: this.addGroup,
+                    groups: this.state.groups,
+                    moveCard: this.moveCard,
+                    removeCard: this.removeCard,
+                    removeGroup: this.removeGroup,
+                    select: this.selectCard,
+                    selectGenerator: this.selectCardGenerator,
+                    selection: { card: this.state.selectedcard, group: this.state.selectedgroup }
+                }}>
                     <div className="workspace">
-                        <Explorer/>
+                        <Explorer />
                     </div>
                     <div className="settings">
-                        Full card
-                        <pre>
-                            {JSON.stringify(selectedgroup.getCard(this.state.selectedcard), null, 4)}
-                        </pre>
-
-                        Override values
-                        <pre>
-                            {JSON.stringify(selectedgroup.getRawCard(this.state.selectedcard), null, 4)}
-                        </pre>
-
-                        Default values from "{selectedgroup.name}"
-                        <pre>
-                            {JSON.stringify(selectedgroup.settings, null, 4)}
-                        </pre>
+                        <Editor />
                     </div>
                     <div className="renders">
-                        <canvas className="frontview view"/>
-                        <hr/>
-                        <canvas className="backview view"/>
+                        <canvas className="frontview view" />
+                        <hr />
+                        <canvas className="backview view" />
                     </div>
-                </SelectedContext.Provider>
-                </SelectCardContext.Provider>
-                </CardGroupContext.Provider>
+                </CardControllerContext.Provider>
             </div>
         );
     }

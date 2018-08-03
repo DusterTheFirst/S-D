@@ -1,17 +1,18 @@
 .explorer {
     display: grid;
     grid-template-columns: auto;
-    grid-template-rows: 40px calc(100% - 40px);
+    grid-template-rows: 40px calc(100% - 60px);
 
     grid-column-gap: 10px;
 
-    background: #1e1e1e;
+    background: #313131;
     color: #cccccc;
 
     height: 100%;
     overflow: hidden;
 
-    .search {
+    .head {
+        grid-row: 1;
         height: 100%;
 
         padding: 0px 50px;
@@ -24,33 +25,68 @@
             box-shadow: 0px 10px 10px #000000;
         }
 
-        input {
-            height: 20px;
-            width: calc(100% - 25px);
-            padding: 1px 3px;
-            margin: 10px;
-            
-            margin-right: 0;
+        .search {
+            display: inline-block;
+            width: calc(100% - 60px);
 
-            background: #3c3c3c;
-            color: #cccccc;
-            border: none;
+            margin: 8px 5px 8px 10px;
 
-            &.short {
-                width: calc(100% - 45px);
+            border: 1px solid transparent;
+
+            padding: 0px 3px;
+
+            background: #555555;
+
+            input {
+                outline: none;
+    
+                height: 20px;
+                width: calc(100%);
+    
+                background: transparent;
+                color: #cccccc;
+                border: none;
+
+                font-size: 15px;
+
+                padding: 0px;
+                
+                display: inline-block;
+    
+                &.short {
+                    width: calc(100% - 20px);
+                }
+            }
+    
+            .x {
+                height: 20px;
+                font-size: 16px;
+                width: 20px;
+
+                color: #cccccc;
+                text-align: center;
+                display: inline-block;
+                position: relative;
+                vertical-align: text-bottom;
+    
+                user-select: none;
+    
+                &:hover {
+                    color: #f04747;
+                }
+    
+                svg {
+                    position: absolute;
+    
+                    top: 50%;
+                    left: 50%;
+    
+                    transform: translate(-50%, -50%);
+                }
             }
         }
 
-        .x {
-            height: 16px;
-            font-size: 16px;
-            width: 20px;
-
-            padding: 3px 0px;
-
-            vertical-align: text-bottom;
-
-            background: #3c3c3c;
+        .add {
             color: #cccccc;
             text-align: center;
             display: inline-block;
@@ -58,29 +94,27 @@
 
             user-select: none;
 
+            width: 20px;
+            margin: 0 5px;
+
             &:hover {
-                background: #313131;
-                color: #f04747;
-            }
-
-            svg {
-                position: absolute;
-
-                top: 50%;
-                left: 50%;
-
-                transform: translate(-50%, -50%);
+                color: #43b581;
             }
         }
     }
 
     .children {
+        grid-row: 2;
         user-select: none;
 
         overflow: auto;
         height: 100%;
 
         padding: 10px 0px 10px 0px;
+
+        &.dragover {
+            background: #314131;
+        }
 
         .group {
             .highlight {
@@ -103,16 +137,20 @@
                 }
 
                 &:hover {
-                    background: #313131;
+                    background: #414141;
                 }
+
+                
+            }
+
+            &.selected > .title {
+                background: #2b5c3b;
             }
 
             .cards {
-
                 .card {
-
                     &:hover {
-                        background: #313131;
+                        background: #414141;
                     }
 
                     padding: 3px 0px 3px 30px;
@@ -124,4 +162,63 @@
             }
         }
     }
+}
+
+.modal {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto 40px 30px;
+    height: 100%;
+
+    grid-column-gap: 10px;
+    
+    color: #cccccc;
+    font-size: 20px;
+
+    .dialog {
+        margin-left: 10px;
+        .info {
+            .type {
+                font-weight: bold;
+            }
+            .name {
+                font-weight: bolder;
+                font-style: italic;
+            }
+        }
+    }
+    .warn {
+        margin-left: 10px;
+        font-weight: bold;
+        .irreversible {
+            color: #f04747;
+        }
+    }
+    .buttons {
+        button {
+            background: #313131;
+            border: none;
+            color: #cccccc;
+    
+            padding: 5px 10px;
+            border-radius: 5px;
+    
+            margin: 0px 10px;
+
+            &.delete {
+                color: #f04747;
+                font-weight: bold;
+
+                &:hover {
+                    background: #f04747;
+                    color: #FFFFFF;
+                }
+            }
+
+            &:hover {
+                background: #515151;
+            }
+        }
+    }
+    
 }

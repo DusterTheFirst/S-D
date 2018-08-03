@@ -5,8 +5,8 @@
     box-sizing: border-box;
 
     padding: 6px 0;
-    background-color: #313131;
-    box-shadow: 0 2px 15px #00000066, 0 0 0 1px #222;
+    background-color: #1a1a1a;
+    box-shadow: 5px 5px 15px #00000066;
 
     border-radius: 3px;
 
@@ -33,17 +33,26 @@
         cursor: default;
         margin: 4px 0;
 
-        background-color: #eee;
+        background-color: #666666;
     }
 
     &__item {
+
+        font-size: 14px;
+
+        color: #b8b8b8;
+        font-weight: bold;
+
+        &.delete {
+            color: #f04747
+        }
 
         cursor: pointer;
         position: relative;
 
         &:not(&--disabled):hover > &__data {
-            color: #ffffff;
-            background-color: #515151;
+            color: inherit;
+            background-color: #313131;
         }
 
         &:not(&--disabled):hover > .react-contexify__submenu {
@@ -57,12 +66,12 @@
         }
 
         &__data {
-            min-width: 140px;
+            min-width: 100px;
             padding: 6px 12px;
             display: flex;
             text-align: left;
             white-space: nowrap;
-            color: #ffffff;
+            color: inherit;
             position: relative;
         }
 

@@ -2,13 +2,11 @@ export default interface ICard {
     name?: string;
     castingTime?: string;
     range?: string;
-    vComponent?: boolean;
-    sComponent?: boolean;
-    mComponent?: boolean;
+    components?: string[];
     duration?: string;
     physicalComponents?: string;
     class?: string;
-    level?: number;
+    level?: string;
     type?: string;
     description?: string;
     extDescription?: string;
