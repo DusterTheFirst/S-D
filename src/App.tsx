@@ -5,6 +5,7 @@ import CardGroup, { ICardGroup } from "./Card/CardGroup";
 import "./ContextMenu.css";
 import Editor from "./Editor/Editor";
 import Explorer from "./Explorer/Explorer";
+import { List, TwoDimensionalArray } from "./Util";
 
 export interface ISelection {
     card: number;
@@ -31,6 +32,9 @@ export interface ICardController {
 
     refresh(): void;
     save(): void;
+
+    unsavedcards: TwoDimensionalArray<number>;
+    unsavedgroups: List<number>;
 }
 export const CardControllerContext = React.createContext<ICardController>({
     addCard: () => void 0,
@@ -47,12 +51,16 @@ export const CardControllerContext = React.createContext<ICardController>({
     selectedGroup: new CardGroup({ name: "placeholder" }),
     selectedRawCard: undefined,
     selection: { card: 0, group: 0 },
+    unsavedcards: new TwoDimensionalArray,
+    unsavedgroups: new List,
 });
 
 interface IAppState {
     groups: Array<CardGroup | undefined>;
     selectedcard: number;
     selectedgroup: number;
+    unsavedcards: TwoDimensionalArray<boolean>;
+    unsavedgroups: List<boolean>;
 }
 // FIXME: Warnings for unsaved changes (save them temporarily in the editor and display an icon)
 // TODO: warn about unsaved before unload
@@ -63,7 +71,9 @@ export default class App extends React.Component<unknown, IAppState> {
         this.state = {
             groups: this.load(),
             selectedcard: 0,
-            selectedgroup: 0
+            selectedgroup: 0,
+            unsavedcards: new TwoDimensionalArray,
+            unsavedgroups: new List
         };
     }
 
@@ -193,6 +203,8 @@ export default class App extends React.Component<unknown, IAppState> {
                     selectedGroup: selectedgroup,
                     selectedRawCard: selectedgroup !== undefined ? selectedgroup.getRawCard(this.state.selectedcard) : undefined,
                     selection: { card: this.state.selectedcard, group: this.state.selectedgroup },
+                    unsavedcards: this.state.unsavedcards,
+                    unsavedgroups: this.state.unsavedgroups
                 }}>
                     <div className="workspace">
                         <Explorer />

@@ -15,6 +15,7 @@ interface IState {
     groupName?: string;
     group: boolean;
     selected: boolean;
+    saved: boolean;
 }
 export default class Editor extends React.Component<unknown, IState> {
     /** The card controller */
@@ -22,7 +23,7 @@ export default class Editor extends React.Component<unknown, IState> {
 
     /** All unsaved changes */
     private readonly cardChanges: TwoDimensionalArray<ICard> = new TwoDimensionalArray<ICard>();
-    private readonly groupChanges: IGroupChanges[] = [];
+    private readonly groupChanges: Array<undefined | IGroupChanges> = [];
 
     public constructor(props: unknown, context: unknown) {
         super(props, context);
@@ -30,9 +31,10 @@ export default class Editor extends React.Component<unknown, IState> {
         this.state = {
             group: false,
             placeholders: {},
+            saved: true,
             selected: false,
             selection: { card: -1, group: -1 },
-            values: {}
+            values: {},
         };
     }
 
@@ -40,6 +42,22 @@ export default class Editor extends React.Component<unknown, IState> {
     public updateSelection() {
         this.setState(preState => {
             let newState: IState = preState;
+
+            // Save unsaved changes
+            if (!preState.saved && preState.selected) {
+                console.exception("DO NOT RELOAD WITHOUT SAVING OR ALL PROGRESS WILL BE LOST");
+                if (preState.group) {
+                    this.groupChanges[preState.selection.group] = {
+                        defaults: preState.values,
+                        groupName: preState.groupName
+                    };
+                    this.cards.unsavedgroups.push(preState.selection.group);
+                    console.log(`Cached unsaved changes for group ${preState.selection.group}.`);
+                } else {
+                    this.cardChanges.set(preState.selection.group, preState.selection.card, preState.values);
+                    console.log(`Cached unsaved changes for card ${preState.selection.card} in group ${preState.selection.group}.`);
+                }
+            }
 
             if (this.cards.selection.group === -1 || this.cards.groups.length === 0) {
                 newState.group = false;
@@ -53,24 +71,35 @@ export default class Editor extends React.Component<unknown, IState> {
             }
 
             newState.selection = this.cards.selection;
+
             newState.placeholders = newState.group && newState.selected
                 ? {}
                 : (this.cards.selectedGroup !== undefined
                     ? this.cards.selectedGroup.settings
                     : {});
 
-            newState.values = newState.selected
-                ? (newState.group
-                    ? (this.cards.selectedGroup !== undefined
-                        ? this.cards.selectedGroup.settings
-                        : {})
-                    : (this.cards.selectedRawCard === undefined
-                        ? {}
-                        : this.cards.selectedRawCard))
-                    : {};
-
-            if (newState.group) {
-                newState.groupName = this.cards.selectedGroup === undefined ? "" : this.cards.selectedGroup.name;
+            if (newState.selected) {
+                let groupChanges = this.groupChanges[preState.selection.group];
+                if (newState.group && groupChanges !== undefined) {
+                    newState.values = groupChanges.defaults;
+                    newState.groupName = groupChanges.groupName;
+                    newState.saved = false;
+                } else if (!newState.group && this.cardChanges.has(preState.selection.group, preState.selection.card)) {
+                    let changes = this.cardChanges.get(preState.selection.group, preState.selection.card);
+                    if (changes !== undefined) {
+                        newState.values = changes;
+                    }
+                    newState.saved = false;
+                } else if (newState.group) {
+                    newState.values = this.cards.selectedGroup !== undefined ? this.cards.selectedGroup.settings : {};
+                    newState.groupName = this.cards.selectedGroup === undefined ? "" : this.cards.selectedGroup.name;
+                    newState.saved = true;
+                } else {
+                    newState.values = this.cards.selectedRawCard !== undefined ? this.cards.selectedRawCard : {};
+                    newState.saved = true;
+                }
+            } else {
+                newState.values = {};
             }
 
             return newState;
@@ -88,7 +117,7 @@ export default class Editor extends React.Component<unknown, IState> {
         }
     }
 
-    /** Update the internal cache values of a text value TODO: display unsaved icon */
+    /** Update the internal cache values of a text value */
     private textInput(name: keyof ICard) {
         return (event: React.FormEvent<HTMLInputElement>) => {
             event.persist();
@@ -97,22 +126,24 @@ export default class Editor extends React.Component<unknown, IState> {
                 let values = { ... preState.values };
                 values[name] = target.value;
                 return {
+                    saved: false,
                     values
                 };
             });
         };
     }
 
-    /** Update the internal cache values of group's name TODO: display unsaved icon */
+    /** Update the internal cache values of group's name */
     private readonly groupNameInput = (event: React.FormEvent<HTMLInputElement>) => {
         event.persist();
         let target = event.currentTarget;
         this.setState({
-            groupName: target.value
+            groupName: target.value,
+            saved: false
         });
     }
 
-    /** Push the cached values into the master TODO: hide unsaved icon */
+    /** Push the cached values into the master */
     private pushValues() {
         if (this.cards.selectedGroup !== undefined) {
             if (this.state.group) {
@@ -121,6 +152,17 @@ export default class Editor extends React.Component<unknown, IState> {
             } else {
                 this.cards.selectedGroup.editCard(this.state.selection.card, this.state.values);
             }
+
+            if (this.state.group) {
+                delete this.groupChanges[this.state.selection.group];
+            } else {
+                this.cardChanges.delete(this.state.selection.group, this.state.selection.card);
+            }
+
+            this.setState({
+                saved: true
+            });
+
             this.cards.refresh();
             this.cards.save();
         }

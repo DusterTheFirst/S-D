@@ -16,7 +16,7 @@ export async function fileReaderAsync(file: Blob) {
 export function download(file: Blob, filename: string) {
     // IE 10+
     try {
-    window.navigator.msSaveOrOpenBlob(file, filename);
+        window.navigator.msSaveOrOpenBlob(file, filename);
     } catch (e) {
         alert(e);
     }
@@ -151,5 +151,45 @@ export class TwoDimensionalArray<V> {
         } else {
             return this.array[x] as V[];
         }
+    }
+}
+
+/** An array with only unique values */
+export class List<V> extends Array<V> {
+    /** Create an empty list */
+    constructor();
+    /** Wrap an already initialised array */
+    constructor(array?: V[]);
+    constructor(array?: V[]) {
+        super();
+
+        if (array) {
+            this.push(...array);
+        }
+    }
+
+    public push(...items: V[]): number {
+        for (let elem of items) {
+            if (this.indexOf(elem) === -1) {
+                super.push(elem);
+            }
+        }
+        return 0;
+    }
+
+    public concat(...items: Array<ConcatArray<V>>): this;
+    public concat(...items: V[]): this;
+    public concat(...items: Array<V | ConcatArray<V>>): this {
+        super.concat(...items);
+        this.clean();
+
+        return this;
+    }
+
+    /** Cleans the array of any duplicates */
+    public clean() {
+        let old = [... this];
+        this.splice(0, this.length);
+        this.push(...old);
     }
 }
