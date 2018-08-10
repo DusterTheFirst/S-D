@@ -19,7 +19,7 @@ interface IState {
 
 export default class CardGroupComponent extends React.Component<IProps, IState> {
 
-    constructor(props: IProps, context: {}) {
+    constructor(props: IProps, context: unknown) {
         super(props, context);
 
         this.state = {
@@ -31,7 +31,7 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
         this.setState(prevState => ({ collapsed: !prevState.collapsed }))
 
     private cardFilter(filter?: string) {
-        return (card: ICard) => (filter && card.name && card.name.toLowerCase().includes(filter.toLowerCase())) || !filter;
+        return (card: ICard) => (filter !== undefined && card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase())) || filter === undefined;
     }
 
     public render() {
@@ -44,9 +44,9 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                                 <ContextMenuProvider id="group-contextmenu" data={{ card: -1, group: this.props.id }}>
                                     <div className={`group ${cards.selection.card === -1 && cards.selection.group === this.props.id ? "selected" : "notselected"}`} style={{
                                         // Show the group if there are results inside of it
-                                        display: search && this.props.group.getCards().filter(this.cardFilter(search)).length > 0
+                                        display: search !== undefined && this.props.group.getCards().filter(this.cardFilter(search)).length > 0
                                             // OR if the group name matches the search
-                                            || search && this.props.group.name.includes(search) || !search ? "block" : "none"
+                                            || search !== undefined && this.props.group.name.includes(search) || search === undefined ? "block" : "none"
                                     }}>
                                         <div className="title" onClick={this.toggleCollapse}>
                                             <div className="caret">
@@ -63,7 +63,7 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                                                     .map((card, j) => {
                                                         let display =
                                                             // Show if the group name is a match and not collapsed
-                                                            search && this.props.group.name.includes(search) && !this.state.collapsed
+                                                            search !== undefined && this.props.group.name.includes(search) && !this.state.collapsed
                                                             // Or if it is a match and not collapsed
                                                             || this.cardFilter(search)(card) && !this.state.collapsed
                                                             // Or if it is selected

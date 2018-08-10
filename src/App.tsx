@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./App.css";
 import ICard from "./Card/Card";
-import CardGroup from "./Card/CardGroup";
+import CardGroup, { ICardGroup } from "./Card/CardGroup";
 import "./ContextMenu.css";
 import Editor from "./Editor/Editor";
 import Explorer from "./Explorer/Explorer";
@@ -23,142 +23,45 @@ export interface ICardController {
     moveCard(group: number, card: number, newpos: number): void;
 
     selection: ISelection;
-    groups: CardGroup[];
+    groups: Array<CardGroup | undefined>;
+
+    selectedCard?: ICard;
+    selectedRawCard?: ICard;
+    selectedGroup?: CardGroup;
+
+    refresh(): void;
+    save(): void;
 }
 export const CardControllerContext = React.createContext<ICardController>({
     addCard: () => void 0,
     addGroup: () => void 0,
     groups: [],
     moveCard: () => void 0,
+    refresh: () => void 0,
     removeCard: () => void 0,
     removeGroup: () => void 0,
+    save: () => void 0,
     select: () => void 0,
     selectGenerator: () => () => void 0,
-    selection: { card: 0, group: 0 }
+    selectedCard: undefined,
+    selectedGroup: new CardGroup({ name: "placeholder" }),
+    selectedRawCard: undefined,
+    selection: { card: 0, group: 0 },
 });
 
 interface IAppState {
-    groups: CardGroup[];
+    groups: Array<CardGroup | undefined>;
     selectedcard: number;
     selectedgroup: number;
 }
-export default class App extends React.Component<{}, IAppState> {
-    constructor(props: {}, context?: {}) {
+// FIXME: Warnings for unsaved changes (save them temporarily in the editor and display an icon)
+// TODO: warn about unsaved before unload
+export default class App extends React.Component<unknown, IAppState> {
+    constructor(props: unknown, context?: unknown) {
         super(props, context);
 
-        let cardgroup = new CardGroup({name: "asdasdad"})
-            .addCard({
-                name: "adfsasg"
-            }).addCard({
-                class: "history",
-                name: "hehe"
-            }).addCard({
-                name: "ds"
-            }).addCard({
-                name: "aaaa"
-            }).addCard({
-                name: "i need help"
-            }).addCard({
-                name: "help i need"
-            }).addCard({
-                name: "qwetqtwt"
-            }).addCard({
-                name: "nate"
-            });
-
-        let g1 = new CardGroup({name: "yeet"})
-            .addCard({
-                name: "yote"
-            }).addCard({
-                class: "history",
-                name: "yate"
-            }).addCard({
-                name: "yaite"
-            }).addCard({
-                name: "yoted"
-            }).addCard({
-                name: "yeetled"
-            }).addCard({
-                name: "zippity"
-            }).addCard({
-                name: "zoppity"
-            }).addCard({
-                name: "ahvfsjhafdjhgafds"
-            });
-
-        let g2 = new CardGroup({name: "rytrruyrtuy"})
-            .addCard({
-                name: "de se"
-            }).addCard({
-                name: "adsd"
-            }).addCard({
-                name: "mien"
-            }).addCard({
-                name: "gigantorum"
-            }).addCard({
-                name: "rwer"
-            }).addCard({
-                name: "and"
-            }).addCard({
-                name: "so"
-            }).addCard({
-                name: "it was"
-            }).addCard({
-                name: "de se"
-            }).addCard({
-                name: "adsd"
-            }).addCard({
-                name: "mien"
-            }).addCard({
-                name: "gigantorum"
-            }).addCard({
-                name: "rwer"
-            }).addCard({
-                name: "and"
-            }).addCard({
-                name: "so"
-            }).addCard({
-                name: "it was"
-            }).addCard({
-                name: "de se"
-            }).addCard({
-                name: "adsd"
-            }).addCard({
-                name: "mien"
-            }).addCard({
-                name: "gigantorum"
-            }).addCard({
-                name: "rwer"
-            }).addCard({
-                name: "and"
-            }).addCard({
-                name: "so"
-            }).addCard({
-                name: "it was"
-            });
-
-        cardgroup.settings = {
-            castingTime: "1",
-            class: "2",
-            color: "3",
-            components: ["v", "s", "a"],
-            description: "4",
-            duration: "5",
-            extDescription: "6",
-            image: "7",
-            level: "8",
-            name: "10",
-            physicalComponents: "11",
-            range: "12",
-            type: "14",
-        };
-
         this.state = {
-            groups: [
-                cardgroup,
-                g1,
-                g2
-            ],
+            groups: this.load(),
             selectedcard: 0,
             selectedgroup: 0
         };
@@ -177,39 +80,48 @@ export default class App extends React.Component<{}, IAppState> {
         this.setState(prevState => {
             let groups = prevState.groups;
 
-            groups[group].moveCard(card, newpos);
+            let groupselect = groups[group];
+            if (groupselect !== undefined) {
+                groupselect.moveCard(card, newpos);
+            }
 
             return {
                 groups
             };
-        })
+        }, () => this.save())
 
     private readonly addCard = (group: number, card?: ICard) =>
         this.setState(prevState => {
             let groups = prevState.groups;
 
-            groups[group].addCard(card);
+            let groupselect = groups[group];
+            if (groupselect !== undefined) {
+                groupselect.addCard(card);
+            }
 
             return {
                 groups
             };
-        })
+        }, () => this.save())
 
     private readonly removeCard = (group: number, card: number) =>
         this.setState(prevState => {
             let groups = prevState.groups;
 
-            groups[group].removeCard(card);
+            let groupselect = groups[group];
+            if (groupselect !== undefined) {
+                groupselect.removeCard(card);
+            }
 
             return {
                 groups
             };
-        })
+        }, () => this.save())
 
     private readonly addGroup = (group: CardGroup) => {
         this.setState(prevState => ({
             groups: [...prevState.groups, group]
-        }));
+        }), () => this.save());
     }
 
     private readonly removeGroup = (group: number) =>
@@ -221,9 +133,11 @@ export default class App extends React.Component<{}, IAppState> {
             return {
                 groups
             };
-        })
+        }, () => this.save())
 
-    public shouldComponentUpdate(nextProps: {}, nextState: IAppState): boolean {
+    public shouldComponentUpdate(nextProps: unknown, nextState: IAppState): boolean {
+        let selectedgroup = nextState.groups[nextState.selectedgroup];
+
         if (nextState.selectedgroup === -1 && nextState.selectedcard === -1) {
             return true;
         } else if (nextState.selectedgroup >= nextState.groups.length) {
@@ -231,16 +145,37 @@ export default class App extends React.Component<{}, IAppState> {
                 selectedgroup: prevState.groups.length - 1
             }));
             return false;
-        } else if (nextState.groups[nextState.selectedgroup] && nextState.selectedcard >= nextState.groups[nextState.selectedgroup].getRawCards().length) {
+        } else if (selectedgroup !== undefined && nextState.selectedcard >= selectedgroup.getRawCards().length) {
             this.setState({
-                selectedcard: nextState.groups[nextState.selectedgroup].getRawCards().length - 1
+                selectedcard: selectedgroup.getRawCards().length - 1
             });
             return false;
         }
         return true;
     }
 
+    /** Save the cards to localstorage */
+    private save() {
+        localStorage.setItem("sd-cards", JSON.stringify(this.state.groups));
+    }
+
+    /** Load the cards from localstorage */
+    private load(): CardGroup[] {
+        let str = localStorage.getItem("sd-cards");
+        if (str !== null) {
+            let groups = [];
+            let groupdefaults = JSON.parse(str) as ICardGroup[];
+            for (let def of groupdefaults) {
+                groups.push(new CardGroup(def));
+            }
+            return groups;
+        }
+        return [];
+    }
+
     public render() {
+        let selectedgroup = this.state.groups[this.state.selectedgroup];
+
         return (
             <div className="app">
                 <CardControllerContext.Provider value={{
@@ -248,11 +183,16 @@ export default class App extends React.Component<{}, IAppState> {
                     addGroup: this.addGroup,
                     groups: this.state.groups,
                     moveCard: this.moveCard,
+                    refresh: () => this.forceUpdate(),
                     removeCard: this.removeCard,
                     removeGroup: this.removeGroup,
+                    save: () => this.save(),
                     select: this.selectCard,
                     selectGenerator: this.selectCardGenerator,
-                    selection: { card: this.state.selectedcard, group: this.state.selectedgroup }
+                    selectedCard: selectedgroup !== undefined ? selectedgroup.getCard(this.state.selectedcard) : undefined,
+                    selectedGroup: selectedgroup,
+                    selectedRawCard: selectedgroup !== undefined ? selectedgroup.getRawCard(this.state.selectedcard) : undefined,
+                    selection: { card: this.state.selectedcard, group: this.state.selectedgroup },
                 }}>
                     <div className="workspace">
                         <Explorer />

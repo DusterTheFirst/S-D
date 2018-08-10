@@ -12,17 +12,22 @@ export default class CardGroup {
     private readonly cards: ICard[];
 
     constructor(defaults: ICardGroup) {
-        if (!defaults.name) {
+        if ((defaults as { name?: string }).name === undefined) {
             throw TypeError("Given defaults are not of type ICardGroup");
         }
 
-        this.cards = defaults.cards || [];
-        this.settings = defaults.settings || {};
+        this.cards = defaults.cards === undefined ? [] : defaults.cards;
+        this.settings = defaults.settings === undefined ? {} : defaults.settings;
         this.name = defaults.name;
     }
 
     public addCard(card?: ICard): this {
-        this.cards.push(card || {});
+        let cardtoadd: ICard = card === undefined ? {} : card;
+        if (cardtoadd.name === undefined) {
+            cardtoadd.name = "Unnamed";
+        }
+
+        this.cards.push(cardtoadd);
 
         return this;
     }
@@ -67,5 +72,9 @@ export default class CardGroup {
 
     public removeCard(i: number): ICard {
         return this.cards.splice(i, 1)[0];
+    }
+
+    public editCard(i: number, card: ICard) {
+        this.cards[i] = card;
     }
 }

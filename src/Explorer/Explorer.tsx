@@ -39,10 +39,10 @@ export const ModalStyles: { content: React.CSSProperties; overlay: React.CSSProp
     }
 };
 
-export default class Explorer extends React.Component<{}, IState> {
+export default class Explorer extends React.Component<unknown, IState> {
     private readonly searchRef: React.RefObject<HTMLInputElement>;
 
-    constructor(props: {}, context?: {}) {
+    constructor(props: unknown, context?: unknown) {
         super(props, context);
 
         this.state = {
@@ -72,22 +72,22 @@ export default class Explorer extends React.Component<{}, IState> {
     /** Highlight the matches to the match string */
     public static highlightMatches(text?: string, match?: string) {
         // Only spend time spliting if there is a match to look for
-        if (match) {
+        if (match !== undefined) {
             // Split on higlight term and include term into parts, ignore case
-            return text && text.split(new RegExp(`(${match && match.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")})`, "gi"))
+            return text !== undefined ? text.split(new RegExp(`(${match.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")})`, "gi"))
                 .map((part, i) => (
                     // If the part is the same as the search term, give it the class highlight
-                    <span className={match && part.toLowerCase() === match.toLowerCase() ? "highlight" : ""} key={i}>
+                    <span className={part.toLowerCase() === match.toLowerCase() ? "highlight" : ""} key={i}>
                         {part}
                     </span>
-                ));
+                )) : null;
         } else {
             return text;
         }
     }
 
     private readonly clearSearch = () => {
-        if (this.searchRef.current) {
+        if (this.searchRef.current !== null) {
             this.searchRef.current.value = "";
 
             this.setState({
@@ -114,7 +114,7 @@ export default class Explorer extends React.Component<{}, IState> {
                 let file = event.dataTransfer.files[i];
 
                 if (file.type === "application/json") {
-                    let contents = await fileReaderAsync<string>(file);
+                    let contents = await fileReaderAsync(file);
 
                     let group = new CardGroup(JSON.parse(contents) as ICardGroup);
 
@@ -129,14 +129,14 @@ export default class Explorer extends React.Component<{}, IState> {
         }
 
     private readonly onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-        if (!this.state.deleteModal) {
+        if (this.state.deleteModal === undefined) {
             event.preventDefault();
         }
     }
 
     private readonly onDragEnter = (event: React.DragEvent<HTMLDivElement>) =>
         this.setState(prevState => ({
-            dragOver: prevState.deleteModal ? false : true
+            dragOver: prevState.deleteModal === undefined
         }))
 
     private readonly onDragExit = (event: React.DragEvent<HTMLDivElement>) =>
@@ -153,9 +153,13 @@ export default class Explorer extends React.Component<{}, IState> {
                         <div className={`children ${this.state.dragOver ? "dragover" : "nodragover"}`} onScroll={this.onScroll} onDrop={this.onDrop(cards)} onDragOver={this.onDragOver} onDragEnter={this.onDragEnter} onDragExit={this.onDragExit}>
                             <SearchContext.Provider value={this.state.search}>{
                                 // Map the array of groups to arrays of elements
-                                cards.groups.map((group, i) => (
-                                    <CardGroupComponent key={i} group={group} id={i}/>
-                                ))
+                                cards.groups.map((group, i) => {
+                                    if (group !== undefined) {
+                                        return <CardGroupComponent key={i} group={group} id={i}/>;
+                                    } else {
+                                        return undefined;
+                                    }
+                                })
                             }</SearchContext.Provider>
 
                             {/* Group context menu */}
@@ -180,9 +184,9 @@ export default class Explorer extends React.Component<{}, IState> {
                                 <Item className="delete" onClick={this.contextDeleteClick} data={cards}>Delete</Item>
                             </ContextMenu>
 
-                            <ReactModal isOpen={!!this.state.deleteModal} style={ModalStyles}>
+                            <ReactModal isOpen={this.state.deleteModal !== undefined} style={ModalStyles}>
                                 <div className="modal">{(()=>{
-                                        if (!this.state.deleteModal) {
+                                        if (this.state.deleteModal === undefined) {
                                             return (
                                                 <div className="error">
                                                     You really messed up if you can see this
@@ -194,19 +198,28 @@ export default class Explorer extends React.Component<{}, IState> {
                                         let groupid = this.state.deleteModal.group;
 
                                         let group = cards.groups[groupid];
-                                        let card = group.getCard(cardid);
 
-                                        return (
-                                            <div className="dialog">
-                                                Are you sure you want to delete
-                                                {
-                                                    cardid !== -1
-                                                    ? <span className="info"> <span className="type">card</span> <span className="name">{card.name}</span></span>
-                                                    : <span className="info"> <span className="type">group</span> <span className="name">{group.name}</span> and all of its cards</span>
-                                                }
-                                                ?
-                                            </div>
-                                        );
+                                        if (group !== undefined) {
+                                            let card = group.getCard(cardid);
+
+                                            return (
+                                                <div className="dialog">
+                                                    Are you sure you want to delete
+                                                    {
+                                                        cardid !== -1
+                                                        ? <span className="info"> <span className="type">card</span> <span className="name">{card.name}</span></span>
+                                                        : <span className="info"> <span className="type">group</span> <span className="name">{group.name}</span> and all of its cards</span>
+                                                    }
+                                                    ?
+                                                </div>
+                                            );
+                                        } else {
+                                            return (
+                                                <div className="error">
+                                                    You really messed up if you can see this
+                                                </div>
+                                            );
+                                        }
                                     })()}
                                     <div className="warn">
                                         This action is <span className="irreversible">irreversible</span>
@@ -221,8 +234,8 @@ export default class Explorer extends React.Component<{}, IState> {
                         {/* Header */}
                         <div className={`head ${(this.state.isTop ? "top" : "scrolled")}`}>
                             <div className="search">
-                                <input type="text" onChange={this.searchChange} className={this.state.search ? "short" : ""} ref={this.searchRef} />
-                                <div className="x" style={{ display: this.state.search ? "" : "none" }} onClick={this.clearSearch}><FontAwesomeIcon icon={faTimes} /></div>
+                                <input type="text" onChange={this.searchChange} className={this.state.search !== undefined ? "short" : ""} ref={this.searchRef} />
+                                <div className="x" style={{ display: this.state.search !== undefined ? "" : "none" }} onClick={this.clearSearch}><FontAwesomeIcon icon={faTimes} /></div>
                             </div>
                             <div className="add" onClick={this.addGroupGenerator(cards, new CardGroup({name: `New Group ${cards.groups.length}`}))}><FontAwesomeIcon icon={faPlus} /></div>
                         </div>
@@ -238,21 +251,23 @@ export default class Explorer extends React.Component<{}, IState> {
         })
 
     private readonly groupContextDownloadClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
-        let { groups } = info.data as ICardController;
+        let { selectedGroup } = info.data as ICardController;
 
-        let selectedgroup = groups[selection.group];
-        let str = JSON.stringify(selectedgroup);
+        let str = JSON.stringify(selectedGroup);
 
-        download(new Blob([str], {type: "application/json"}), `${selectedgroup.name}.json`);
+        if (selectedGroup !== undefined) {
+            download(new Blob([str], {type: "application/json"}), `${selectedGroup.name}.json`);
+        }
     }
 
     private readonly groupContextAddClick = (info: ItemCallback) => {
         let selection = info.dataFromProvider as ISelection;
-        let { addCard, select, groups } = info.data as ICardController;
+        let { addCard, select, selectedGroup } = info.data as ICardController;
 
-        addCard(selection.group);
-        select(selection.group, groups[selection.group].getRawCards().length);
+        if (selectedGroup !== undefined) {
+            addCard(selection.group);
+            select(selection.group, selectedGroup.getRawCards().length);
+        }
     }
 
     private readonly groupContextEditClick = (info: ItemCallback) => {
@@ -273,7 +288,7 @@ export default class Explorer extends React.Component<{}, IState> {
         });
     }
     private deleteCardgenerator({removeGroup, removeCard}: ICardController, selection?: ISelection) {
-        if (!selection) {
+        if (selection === undefined) {
             return () =>
                 this.setState({
                     deleteModal: undefined
@@ -297,10 +312,12 @@ export default class Explorer extends React.Component<{}, IState> {
 
     private readonly cardContextDuplicateClick = (info: ItemCallback) => {
         let selection = info.dataFromProvider as ISelection;
-        let { addCard, groups, select } = info.data as ICardController;
+        let { addCard, select, selectedGroup } = info.data as ICardController;
 
-        addCard(selection.group, groups[selection.group].getRawCard(selection.card));
-        select(selection.group,  groups[selection.group].getRawCards().length);
+        if (selectedGroup !== undefined) {
+            addCard(selection.group, selectedGroup.getRawCard(selection.card));
+            select(selection.group,  selectedGroup.getRawCards().length);
+        }
     }
 
     private readonly cardContextUpClick = (info: ItemCallback) => {
@@ -319,17 +336,21 @@ export default class Explorer extends React.Component<{}, IState> {
         select(selection.group, selection.card + 1);
     }
 
-    private readonly cardContextUpDisable = (info: ItemCallback) => {
+    private readonly cardContextUpDisable = (info: ItemCallback): boolean => {
         let selection = info.dataFromProvider as ISelection;
         let { } = info.data as ICardController;
 
         return selection.card === 0;
     }
 
-    private readonly cardContextDownDisable = (info: ItemCallback) => {
+    private readonly cardContextDownDisable = (info: ItemCallback): boolean => {
         let selection = info.dataFromProvider as ISelection;
-        let { groups } = info.data as ICardController;
+        let { selectedGroup } = info.data as ICardController;
 
-        return selection.card === groups[selection.group].getRawCards().length - 1;
+        if (selectedGroup !== undefined) {
+            return selection.card === selectedGroup.getRawCards().length - 1;
+        } else {
+            return true;
+        }
     }
 }

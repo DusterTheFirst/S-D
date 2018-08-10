@@ -16,7 +16,7 @@ const isLocalhost = Boolean(
     // 127.0.0.1/8 is considered localhost for IPv4.
     window.location.hostname.match(
         /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
-    )
+    ) !== null
 );
 
 export default function register() {
@@ -62,10 +62,10 @@ function registerValidSW(swUrl: string) {
         .then(registration => {
             registration.onupdatefound = () => {
                 const installingWorker = registration.installing;
-                if (installingWorker) {
+                if (installingWorker !== null) {
                     installingWorker.onstatechange = () => {
                         if (installingWorker.state === "installed") {
-                            if (navigator.serviceWorker.controller) {
+                            if (navigator.serviceWorker.controller !== null) {
                                 // At this point, the old content will have been purged and
                                 // the fresh content will have been added to the cache.
                                 // It's the perfect time to display a 'New content is

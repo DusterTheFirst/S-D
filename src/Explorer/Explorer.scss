@@ -149,6 +149,7 @@
 
             .cards {
                 .card {
+                    min-height: 20px;
                     &:hover {
                         background: #414141;
                     }
