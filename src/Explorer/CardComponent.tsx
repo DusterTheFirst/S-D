@@ -31,10 +31,7 @@ export default class CardComponent extends React.Component<IProps> {
                                         Explorer.highlightMatches(this.props.card.name, search)
                                     }
                                     {
-                                        (()=>{console.log(cards.getSaveState(this.props.groupid, this.props.id), "card");return"a";})()
-                                    }
-                                    {
-                                        cards.getSaveState(this.props.groupid, this.props.id) ? null : " •"
+                                        cards.getCardChanges(this.props.groupid, this.props.id) === undefined ? null : " •"
                                     }
                                 </div>
                             </ContextMenuProvider>

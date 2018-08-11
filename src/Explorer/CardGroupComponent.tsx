@@ -58,7 +58,7 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                                                     Explorer.highlightMatches(this.props.group.name, search)
                                                 }
                                                 {
-                                                    cards.getSaveState(this.props.id) ? null : " •"
+                                                    cards.getGroupChanges(this.props.id) === undefined ? null : " •"
                                                 }
                                             </div>
                                         </div>

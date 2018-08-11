@@ -33,15 +33,17 @@ export interface ICardController {
     refresh(): void;
     save(): void;
 
-    setSaveState(group: number, state: boolean): boolean;
-    setSaveState(group: number, card: number, state: boolean): boolean;
+    setCardChanges(group: number, card: number, changes?: ICard): void;
+    setGroupChanges(group: number, changes?: IGroupChanges): void;
 
-    getSaveState(group: number, card?: number): boolean;
+    getCardChanges(group: number, card: number): ICard | undefined;
+    getGroupChanges(group: number): IGroupChanges | undefined;
 }
 export const CardControllerContext = React.createContext<ICardController>({
     addCard: () => void 0,
     addGroup: () => void 0,
-    getSaveState: () => false,
+    getCardChanges: () => void 0,
+    getGroupChanges: () => void 0,
     groups: [],
     moveCard: () => void 0,
     refresh: () => void 0,
@@ -54,28 +56,35 @@ export const CardControllerContext = React.createContext<ICardController>({
     selectedGroup: new CardGroup({ name: "placeholder" }),
     selectedRawCard: undefined,
     selection: { card: 0, group: 0 },
-    setSaveState: () => false
+    setCardChanges: () => void 0,
+    setGroupChanges: () => void 0,
 });
+
+interface IGroupChanges {
+    defaults: ICard;
+    groupName?: string;
+}
 
 interface IAppState {
     groups: Array<CardGroup | undefined>;
     selectedcard: number;
     selectedgroup: number;
-    unsavedcards: TwoDimensionalArray<boolean | undefined>;
-    unsavedgroups: Array<boolean | undefined>;
 }
 // FIXME: Warnings for unsaved changes (save them temporarily in the editor and display an icon)
 // TODO: warn about unsaved before unload
 export default class App extends React.Component<unknown, IAppState> {
+
+    /** All unsaved changes */
+    private readonly cardChanges: TwoDimensionalArray<ICard> = new TwoDimensionalArray<ICard>();
+    private readonly groupChanges: Array<undefined | IGroupChanges> = [];
+
     constructor(props: unknown, context?: unknown) {
         super(props, context);
 
         this.state = {
             groups: this.load(),
             selectedcard: 0,
-            selectedgroup: 0,
-            unsavedcards: new TwoDimensionalArray,
-            unsavedgroups: []
+            selectedgroup: 0
         };
     }
 
@@ -185,53 +194,16 @@ export default class App extends React.Component<unknown, IAppState> {
         return [];
     }
 
-    private readonly setSaveState = (group: number, cardOrState: number | boolean, stateOrNothing?: boolean): boolean => {
-        if (stateOrNothing !== undefined) {
-            let card = cardOrState as number;
-            let state = stateOrNothing;
-
-            this.setState(prevState => {
-                if (prevState.unsavedcards.get(group, card) === state) {
-                    return null;
-                }
-
-                return {
-                    unsavedcards: prevState.unsavedcards.set(group, card, state)
-                };
-            });
-
-            console.log(`Save state ${state} for card ${card} in group ${group}`);
-
-            return state;
+    private readonly setCardChanges = (group: number, card: number, changes?: ICard) => {
+        if (changes !== undefined) {
+            this.cardChanges.set(group, card, changes);
         } else {
-            let state = cardOrState as boolean;
-
-            this.setState(prevState => {
-                if (prevState.unsavedgroups[group] === state) {
-                    return null;
-                }
-
-                prevState.unsavedgroups[group] = state;
-                return {
-                    unsavedgroups: prevState.unsavedgroups
-                };
-            });
-
-            console.log(`Save state ${state} for group ${group}`);
-
-            return state;
+            this.cardChanges.delete(group, card);
         }
     }
-
-    private readonly getSaveState = (group: number, card?: number): boolean => {
-        if (card === undefined) {
-            let state = this.state.unsavedgroups[group];
-            return state !== undefined ? state : true;
-        } else {
-            let state = this.state.unsavedcards.get(group, card);
-            return state !== undefined ? state : true;
-        }
-    }
+    private readonly setGroupChanges = (group: number, changes?: IGroupChanges) => this.groupChanges[group] = changes;
+    private readonly getCardChanges = (group: number, card: number): ICard | undefined => this.cardChanges.get(group, card);
+    private readonly getGroupChanges = (group: number): IGroupChanges | undefined => this.groupChanges[group];
 
     public render() {
         let selectedgroup = this.state.groups[this.state.selectedgroup];
@@ -241,7 +213,8 @@ export default class App extends React.Component<unknown, IAppState> {
                 <CardControllerContext.Provider value={{
                     addCard: this.addCard,
                     addGroup: this.addGroup,
-                    getSaveState: this.getSaveState,
+                    getCardChanges: this.getCardChanges,
+                    getGroupChanges: this.getGroupChanges,
                     groups: this.state.groups,
                     moveCard: this.moveCard,
                     refresh: () => this.forceUpdate(),
@@ -254,7 +227,8 @@ export default class App extends React.Component<unknown, IAppState> {
                     selectedGroup: selectedgroup,
                     selectedRawCard: selectedgroup !== undefined ? selectedgroup.getRawCard(this.state.selectedcard) : undefined,
                     selection: { card: this.state.selectedcard, group: this.state.selectedgroup },
-                    setSaveState: this.setSaveState
+                    setCardChanges: this.setCardChanges,
+                    setGroupChanges: this.setGroupChanges
                 }}>
                     <div className="workspace">
                         <Explorer />

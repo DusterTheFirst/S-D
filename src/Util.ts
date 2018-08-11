@@ -80,14 +80,14 @@ export class TwoDimensionalArray<V> {
         if (y !== undefined) {
             let xelem = this.array[x];
             if (xelem !== undefined) {
-                let [removed] = xelem.splice(y, 1);
-                return removed !== undefined;
+                delete xelem[y];
+                return true;
             } else {
                 return false;
             }
         } else {
-            let [removed] = this.array.splice(x, 1);
-            return removed !== undefined;
+            delete this.array[x];
+            return true;
         }
     }
 
@@ -107,7 +107,8 @@ export class TwoDimensionalArray<V> {
     /** Check if the two dimensional array has a value */
     public has(x: number, y?: number): boolean {
         if (y !== undefined) {
-            return this.array[x] !== undefined && this.array[y] !== undefined;
+            let xarr = this.array[x];
+            return xarr !== undefined && xarr[y] !== undefined;
         } else {
             return this.array[x] !== undefined;
         }
@@ -143,6 +144,9 @@ export class TwoDimensionalArray<V> {
     public get(x: number, y?: number): V | V[] | undefined {
         if (y !== undefined) {
             let xarr = this.array[x];
+
+            console.log(x, y, xarr);
+
             if (xarr !== undefined) {
                 return xarr[y];
             } else {

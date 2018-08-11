@@ -1,12 +1,7 @@
 import * as React from "react";
 import { CardControllerContext, ICardController, ISelection } from "../App";
 import ICard from "../Card/Card";
-import { TwoDimensionalArray } from "../Util";
-
-interface IGroupChanges {
-    defaults: ICard;
-    groupName?: string;
-}
+import "./Editor.css";
 
 interface IState {
     selection: ISelection;
@@ -20,10 +15,6 @@ interface IState {
 export default class Editor extends React.Component<unknown, IState> {
     /** The card controller */
     private cards: ICardController;
-
-    /** All unsaved changes */
-    private readonly cardChanges: TwoDimensionalArray<ICard> = new TwoDimensionalArray<ICard>();
-    private readonly groupChanges: Array<undefined | IGroupChanges> = [];
 
     public constructor(props: unknown, context: unknown) {
         super(props, context);
@@ -42,19 +33,10 @@ export default class Editor extends React.Component<unknown, IState> {
     public updateSelection() {
         // Cache unsaved changes
         if (!this.state.saved && this.state.selected) {
-            if (this.state.group) {
-                this.groupChanges[this.state.selection.group] = {
-                    defaults: this.state.values,
-                    groupName: this.state.groupName
-                };
-
-                this.cards.setSaveState(this.state.selection.group, false);
-            } else {
-                this.cardChanges.set(this.state.selection.group, this.state.selection.card, this.state.values);
-
-                this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
-            }
+            this.updateCache();
         }
+
+        console.log(this.state);
 
         this.setState(preState => {
             let newState: IState = preState;
@@ -79,17 +61,16 @@ export default class Editor extends React.Component<unknown, IState> {
                     : {});
 
             if (newState.selected) {
-                let groupChanges = this.groupChanges[preState.selection.group];
+                let groupChanges = this.cards.getGroupChanges(preState.selection.group);
+                let cardChanges = this.cards.getCardChanges(preState.selection.group, preState.selection.card);
 
                 if (newState.group && groupChanges !== undefined) {
                     newState.values = groupChanges.defaults;
                     newState.groupName = groupChanges.groupName;
                     newState.saved = false;
-                } else if (!newState.group && this.cardChanges.has(preState.selection.group, preState.selection.card)) {
-                    let changes = this.cardChanges.get(preState.selection.group, preState.selection.card);
-                    if (changes !== undefined) {
-                        newState.values = changes;
-                    }
+                } else if (!newState.group && cardChanges !== undefined) {
+                    newState.values = cardChanges;
+                    newState.groupName = undefined;
                     newState.saved = false;
                 } else if (newState.group) {
                     newState.values = this.cards.selectedGroup !== undefined ? this.cards.selectedGroup.settings : {};
@@ -97,6 +78,7 @@ export default class Editor extends React.Component<unknown, IState> {
                     newState.saved = true;
                 } else {
                     newState.values = this.cards.selectedRawCard !== undefined ? this.cards.selectedRawCard : {};
+                    newState.groupName = undefined;
                     newState.saved = true;
                 }
             } else {
@@ -108,12 +90,12 @@ export default class Editor extends React.Component<unknown, IState> {
     }
 
     public componentDidMount() {
-        if (this.state.selection !== this.cards.selection) {
+        if (this.state.selection.card !== this.cards.selection.card || this.state.selection.group !== this.cards.selection.group) {
             this.updateSelection();
         }
     }
     public componentDidUpdate() {
-        if (this.state.selection !== this.cards.selection) {
+        if (this.state.selection.card !== this.cards.selection.card || this.state.selection.group !== this.cards.selection.group) {
             this.updateSelection();
         }
     }
@@ -124,12 +106,6 @@ export default class Editor extends React.Component<unknown, IState> {
             event.persist();
             let target = event.currentTarget;
 
-            if (this.state.group) {
-                this.cards.setSaveState(this.state.selection.group, false);
-            } else {
-                this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
-            }
-
             this.setState(preState => {
                 let values = { ... preState.values };
                 values[name] = target.value;
@@ -137,7 +113,7 @@ export default class Editor extends React.Component<unknown, IState> {
                     saved: false,
                     values
                 };
-            });
+            }, this.updateCache);
         };
     }
 
@@ -146,16 +122,21 @@ export default class Editor extends React.Component<unknown, IState> {
         event.persist();
         let target = event.currentTarget;
 
-        if (this.state.group) {
-            this.cards.setSaveState(this.state.selection.group, false);
-        } else {
-            this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
-        }
-
         this.setState({
             groupName: target.value,
             saved: false
-        });
+        }, this.updateCache);
+    }
+
+    private readonly updateCache = () => {
+        if (this.state.group) {
+            this.cards.setGroupChanges(this.state.selection.group, {
+                defaults: this.state.values,
+                groupName: this.state.groupName
+            });
+        } else {
+            this.cards.setCardChanges(this.state.selection.group, this.state.selection.card, this.state.values);
+        }
     }
 
     /** Push the cached values into the master */
@@ -169,22 +150,18 @@ export default class Editor extends React.Component<unknown, IState> {
             }
 
             if (this.state.group) {
-                delete this.groupChanges[this.state.selection.group];
+                this.cards.setGroupChanges(this.state.selection.group, undefined);
             } else {
-                this.cardChanges.delete(this.state.selection.group, this.state.selection.card);
+                this.cards.setCardChanges(this.state.selection.group, this.state.selection.card, undefined);
             }
 
             this.cards.save();
 
             this.setState({
                 saved: true
-            }, () => {
-                if (this.state.group) {
-                    this.cards.setSaveState(this.state.selection.group, false);
-                } else {
-                    this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
-                }
             });
+
+            this.cards.refresh();
         }
     }
 
@@ -200,18 +177,16 @@ export default class Editor extends React.Component<unknown, IState> {
                         <div className="editor"> {
                             this.state.selected
                                 ? <div className="values">
-                                    <pre>{JSON.stringify([this.state.selection, this.state.values, this.state.placeholders], null, 4)}</pre>
-
                                     {this.state.group ? (
                                         <div className="groupsettings">
-                                            <h1>Group settings</h1>
+                                            <div className="title">Group settings</div>
                                             <label>
                                                 Name <input type="text" value={this.state.groupName === undefined ? "" : this.state.groupName} onChange={this.groupNameInput} />
                                             </label>
                                         </div>
                                     ) : null}
 
-                                    <h1>Card Settings</h1>
+                                    <div className="title">Card Settings</div>
                                     <label>
                                         Name <input type="text" value={this.state.values.name === undefined ? "" : this.state.values.name} onChange={this.textInput("name")} placeholder={this.state.placeholders.name} />
                                     </label>
