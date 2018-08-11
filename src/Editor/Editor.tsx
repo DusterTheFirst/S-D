@@ -38,26 +38,26 @@ export default class Editor extends React.Component<unknown, IState> {
         };
     }
 
-    /** Update the selection to the current one TODO: cache unsaved changes & load from old unsaved changes if they exist */
+    /** Update the selection to the current one */
     public updateSelection() {
+        // Cache unsaved changes
+        if (!this.state.saved && this.state.selected) {
+            if (this.state.group) {
+                this.groupChanges[this.state.selection.group] = {
+                    defaults: this.state.values,
+                    groupName: this.state.groupName
+                };
+
+                this.cards.setSaveState(this.state.selection.group, false);
+            } else {
+                this.cardChanges.set(this.state.selection.group, this.state.selection.card, this.state.values);
+
+                this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
+            }
+        }
+
         this.setState(preState => {
             let newState: IState = preState;
-
-            // Save unsaved changes
-            if (!preState.saved && preState.selected) {
-                console.exception("DO NOT RELOAD WITHOUT SAVING OR ALL PROGRESS WILL BE LOST");
-                if (preState.group) {
-                    this.groupChanges[preState.selection.group] = {
-                        defaults: preState.values,
-                        groupName: preState.groupName
-                    };
-                    this.cards.unsavedgroups.push(preState.selection.group);
-                    console.log(`Cached unsaved changes for group ${preState.selection.group}.`);
-                } else {
-                    this.cardChanges.set(preState.selection.group, preState.selection.card, preState.values);
-                    console.log(`Cached unsaved changes for card ${preState.selection.card} in group ${preState.selection.group}.`);
-                }
-            }
 
             if (this.cards.selection.group === -1 || this.cards.groups.length === 0) {
                 newState.group = false;
@@ -80,6 +80,7 @@ export default class Editor extends React.Component<unknown, IState> {
 
             if (newState.selected) {
                 let groupChanges = this.groupChanges[preState.selection.group];
+
                 if (newState.group && groupChanges !== undefined) {
                     newState.values = groupChanges.defaults;
                     newState.groupName = groupChanges.groupName;
@@ -122,6 +123,13 @@ export default class Editor extends React.Component<unknown, IState> {
         return (event: React.FormEvent<HTMLInputElement>) => {
             event.persist();
             let target = event.currentTarget;
+
+            if (this.state.group) {
+                this.cards.setSaveState(this.state.selection.group, false);
+            } else {
+                this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
+            }
+
             this.setState(preState => {
                 let values = { ... preState.values };
                 values[name] = target.value;
@@ -137,6 +145,13 @@ export default class Editor extends React.Component<unknown, IState> {
     private readonly groupNameInput = (event: React.FormEvent<HTMLInputElement>) => {
         event.persist();
         let target = event.currentTarget;
+
+        if (this.state.group) {
+            this.cards.setSaveState(this.state.selection.group, false);
+        } else {
+            this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
+        }
+
         this.setState({
             groupName: target.value,
             saved: false
@@ -159,12 +174,17 @@ export default class Editor extends React.Component<unknown, IState> {
                 this.cardChanges.delete(this.state.selection.group, this.state.selection.card);
             }
 
+            this.cards.save();
+
             this.setState({
                 saved: true
+            }, () => {
+                if (this.state.group) {
+                    this.cards.setSaveState(this.state.selection.group, false);
+                } else {
+                    this.cards.setSaveState(this.state.selection.group, this.state.selection.card, false);
+                }
             });
-
-            this.cards.refresh();
-            this.cards.save();
         }
     }
 

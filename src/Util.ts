@@ -36,11 +36,11 @@ export function download(file: Blob, filename: string) {
 }
 
 /** A representation of a two dimensional array's size */
-interface ITwoDimensionalArraySize {
-    x: number;
-    ymax: number;
-    ymin: number;
-}
+// interface ITwoDimensionalArraySize {
+//     x: number;
+//     ymax: number;
+//     ymin: number;
+// }
 /** A representation of a two dimensional array's value key */
 interface ITwoDimensionalArrayKey {
     x: number;
@@ -52,13 +52,13 @@ export class TwoDimensionalArray<V> {
     private array: Array<Array<V | undefined> | undefined>;
 
     /** The ISize representation of the two dimensional array */
-    public get size(): ITwoDimensionalArraySize {
-        return {
-            x: this.array.length,
-            ymax: Math.max(... this.array.map(x => x !== undefined ? x.length : 0)),
-            ymin: Math.min(... this.array.map(x => x !== undefined ? x.length : 0))
-        };
-    }
+    // public get size(): ITwoDimensionalArraySize {
+    //     return {
+    //         x: this.array.length,
+    //         ymax: Math.max(... this.array.map(x => x !== undefined ? x.length : 0)),
+    //         ymin: Math.min(... this.array.map(x => x !== undefined ? x.length : 0))
+    //     };
+    // }
 
     /** Create an empty two dimensional array */
     constructor();
@@ -151,45 +151,5 @@ export class TwoDimensionalArray<V> {
         } else {
             return this.array[x] as V[];
         }
-    }
-}
-
-/** An array with only unique values */
-export class List<V> extends Array<V> {
-    /** Create an empty list */
-    constructor();
-    /** Wrap an already initialised array */
-    constructor(array?: V[]);
-    constructor(array?: V[]) {
-        super();
-
-        if (array) {
-            this.push(...array);
-        }
-    }
-
-    public push(...items: V[]): number {
-        for (let elem of items) {
-            if (this.indexOf(elem) === -1) {
-                super.push(elem);
-            }
-        }
-        return 0;
-    }
-
-    public concat(...items: Array<ConcatArray<V>>): this;
-    public concat(...items: V[]): this;
-    public concat(...items: Array<V | ConcatArray<V>>): this {
-        super.concat(...items);
-        this.clean();
-
-        return this;
-    }
-
-    /** Cleans the array of any duplicates */
-    public clean() {
-        let old = [... this];
-        this.splice(0, this.length);
-        this.push(...old);
     }
 }

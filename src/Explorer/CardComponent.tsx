@@ -25,10 +25,18 @@ export default class CardComponent extends React.Component<IProps> {
                                     className={`card ${cards.selection.card === this.props.id && cards.selection.group === this.props.groupid ? "selected" : "notselected"}`}
                                     onClick={cards.selectGenerator(this.props.groupid, this.props.id)}
                                     style={{ display: this.props.display ? "block" : "none" }}
-                                >{
+                                >
+                                    {
                                         // Highlight any text in the card that matches the search query
                                         Explorer.highlightMatches(this.props.card.name, search)
-                                    }</div>
+                                    }
+                                    {
+                                        (()=>{console.log(cards.getSaveState(this.props.groupid, this.props.id), "card");return"a";})()
+                                    }
+                                    {
+                                        cards.getSaveState(this.props.groupid, this.props.id) ? null : " •"
+                                    }
+                                </div>
                             </ContextMenuProvider>
                         )
                     }</CardControllerContext.Consumer>

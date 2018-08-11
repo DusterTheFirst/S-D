@@ -52,10 +52,15 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                                             <div className="caret">
                                                 <FontAwesomeIcon icon={this.state.collapsed ? faCaretRight : faCaretDown} />
                                             </div>
-                                            <div className="name">{
-                                                // Highlight any text in the name that matches the search query
-                                                Explorer.highlightMatches(this.props.group.name, search)
-                                            }</div>
+                                            <div className="name">
+                                                {
+                                                    // Highlight any text in the name that matches the search query
+                                                    Explorer.highlightMatches(this.props.group.name, search)
+                                                }
+                                                {
+                                                    cards.getSaveState(this.props.id) ? null : " •"
+                                                }
+                                            </div>
                                         </div>
                                         <div className="cards">{
                                                 this.props.group.getCards()
