@@ -5,7 +5,7 @@ import { ContextMenu, Item, ItemCallback, Separator } from "react-contexify";
 import * as ReactModal from "react-modal";
 import { CardControllerContext, ICardController, ISelection} from "../App";
 import CardGroup, { ICardGroup } from "../Card/CardGroup";
-import { download, fileReaderAsync } from "../Util";
+import { download, textFileReaderAsync } from "../Util";
 import CardGroupComponent from "./CardGroupComponent";
 import "./Explorer.css";
 
@@ -113,8 +113,8 @@ export default class Explorer extends React.Component<unknown, IState> {
             for (let i = 0; i < event.dataTransfer.items.length; i++) {
                 let file = event.dataTransfer.files[i];
 
-                if (file.type === "application/json") {
-                    let contents = await fileReaderAsync(file);
+                if (file.type === "application/json" || file.name.endsWith(".json")) {
+                    let contents = await textFileReaderAsync(file);
 
                     let group = new CardGroup(JSON.parse(contents) as ICardGroup);
 

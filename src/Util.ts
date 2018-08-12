@@ -1,7 +1,22 @@
-export async function fileReaderAsync(file: Blob) {
+export async function textFileReaderAsync(file: Blob) {
     return new Promise<string>((resolve, reject) => {
         let reader = new FileReader();
         reader.readAsText(file);
+        reader.onload = (e) => {
+            if (reader.result !== null) {
+                resolve(reader.result.toString());
+            } else {
+                reject(new Error("No result"));
+            }
+        };
+        reader.onerror = reject;
+    });
+}
+
+export async function dataFileReaderAsync(file: Blob) {
+    return new Promise<string>((resolve, reject) => {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
         reader.onload = (e) => {
             if (reader.result !== null) {
                 resolve(reader.result.toString());
@@ -144,8 +159,6 @@ export class TwoDimensionalArray<V> {
     public get(x: number, y?: number): V | V[] | undefined {
         if (y !== undefined) {
             let xarr = this.array[x];
-
-            console.log(x, y, xarr);
 
             if (xarr !== undefined) {
                 return xarr[y];
