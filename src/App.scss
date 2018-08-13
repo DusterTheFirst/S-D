@@ -29,9 +29,11 @@
     .renders {
         width: 300px;
         height: 100%;
-    }
 
-    .view {
-        background: red;
+        canvas {
+            width: 300px;
+
+            background: white;
+        }
     }
 }
