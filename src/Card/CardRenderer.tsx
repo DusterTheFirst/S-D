@@ -5,6 +5,8 @@ export function renderCard(card: Card): IRenderedCard {
     const width = 2000;
     const height = 2800;
 
+    console.info(card);
+
     let front = <canvas width={width} height={height} ref={frontcanvas => {
         if (frontcanvas !== null) {
             console.info("drawing");
@@ -12,13 +14,19 @@ export function renderCard(card: Card): IRenderedCard {
             let ctx = frontcanvas.getContext("2d");
 
             if (ctx !== null) {
+                // Clear
+                ctx.clearRect(0, 0, width, height);
                 console.info("drawing border");
 
                 // Border
+                ctx.save();
+
                 ctx.strokeStyle = card.color === undefined ? "black" : card.color;
                 ctx.lineWidth = 100;
                 ctx.fillStyle = card.color === undefined ? "black" : card.color;
-                roundRect(ctx, 0, 0, width, height, 200);
+                roundRect(ctx, 0, 0, width, height, 100);
+
+                ctx.restore();
             }
         }
     }} />;
@@ -72,8 +80,6 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: n
             actualradius[side] = radius[side];
         }
     }
-
-    console.log(arguments, actualradius);
 
     ctx.beginPath();
 

@@ -2,6 +2,7 @@
     "name": "sd",
     "version": "0.1.0",
     "private": true,
+    "homepage": "https://dusterthefirst.github.io/sd",
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^1.2.0-14",
         "@fortawesome/free-solid-svg-icons": "^5.1.0-11",
@@ -18,7 +19,9 @@
         "build": "react-scripts-ts build",
         "test": "react-scripts-ts test --env=jsdom",
         "eject": "react-scripts-ts eject",
-        "sass": "node-sass ./src/ -o ./src/ && node-sass -w ./src/ -o ./src/ --error-bell"
+        "sass": "node-sass ./src/ -o ./src/ && node-sass -w ./src/ -o ./src/ --error-bell",
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build"
     },
     "devDependencies": {
         "@types/jest": "^23.1.5",
@@ -26,6 +29,7 @@
         "@types/react": "^16.4.6",
         "@types/react-dom": "^16.0.6",
         "@types/react-modal": "^3.2.0",
+        "gh-pages": "^1.2.0",
         "typescript": "^3.0.1"
     }
 }
