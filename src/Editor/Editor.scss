@@ -21,11 +21,19 @@
 
     label {
         font-weight: bold;
+        display: block;
+        user-select: none;
         img {
             max-height: 50px;
             display: block;
         }
-        input {
+        &:hover > input, &:hover > textarea {
+            border-bottom: solid 1px #777777;
+        }
+        input, textarea {
+            user-select: contain;
+            resize: vertical;
+
             font-weight: normal;
             background: none;
             color: #cccccc;

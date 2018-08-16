@@ -2,7 +2,7 @@ import * as React from "react";
 import "./App.css";
 import ICard from "./Card/Card";
 import CardGroup, { ICardGroup } from "./Card/CardGroup";
-import { IRenderedCard, renderCard } from "./Card/CardRenderer";
+import { renderCard } from "./Card/CardRenderer";
 import "./ContextMenu.css";
 import Editor from "./Editor/Editor";
 import Explorer from "./Explorer/Explorer";
@@ -208,12 +208,6 @@ export default class App extends React.Component<unknown, IAppState> {
     public render() {
         let selectedgroup = this.state.groups[this.state.selectedgroup];
 
-        let render: IRenderedCard | undefined;
-
-        if (selectedgroup !== undefined) {
-            render = this.state.selectedcard === -1 ? renderCard(selectedgroup.settings) : renderCard(selectedgroup.getCard(this.state.selectedcard));
-        }
-
         return (
             <div className="app">
                 <CardControllerContext.Provider value={{
@@ -243,16 +237,32 @@ export default class App extends React.Component<unknown, IAppState> {
                         <Editor />
                     </div>
                     <div className="renders">
-                        <div className="frontview view">
-                            {render !== undefined ? render.front : null}
-                        </div>
-                        <hr />
-                        <div className="backview view">
-                            {render !== undefined ? render.back : null}
-                        </div>
+                        <svg className="frontview view" id="cardfrontcanvas" />
+                        <svg className="backview view" id="cardbackcanvas" />
                     </div>
                 </CardControllerContext.Provider>
             </div>
         );
+    }
+
+    public componentDidMount() {
+        let selectedgroup = this.state.groups[this.state.selectedgroup];
+        if (selectedgroup !== undefined) {
+            if (this.state.selectedcard === -1) {
+                renderCard(selectedgroup.settings);
+            } else {
+                renderCard(selectedgroup.getCard(this.state.selectedcard));
+            }
+        }
+    }
+    public componentDidUpdate() {
+        let selectedgroup = this.state.groups[this.state.selectedgroup];
+        if (selectedgroup !== undefined) {
+            if (this.state.selectedcard === -1) {
+                renderCard(selectedgroup.settings);
+            } else {
+                renderCard(selectedgroup.getCard(this.state.selectedcard));
+            }
+        }
     }
 }

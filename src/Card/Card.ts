@@ -6,7 +6,7 @@ export default interface ICard {
     duration?: string;
     physicalComponents?: string;
     class?: string;
-    level?: number;
+    level?: string;
     type?: string;
     description?: string;
     extDescription?: string;

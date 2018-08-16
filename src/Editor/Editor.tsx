@@ -105,7 +105,7 @@ export default class Editor extends React.Component<unknown, IState> {
 
     /** Update the internal cache values of a text value */
     private textInput(name: keyof ICard) {
-        return (event: React.FormEvent<HTMLInputElement>) => {
+        return (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
             event.persist();
             let target = event.currentTarget;
 
@@ -229,39 +229,39 @@ export default class Editor extends React.Component<unknown, IState> {
                                         Casting Time:<input type="text" value={this.state.values.castingTime === undefined ? "" : this.state.values.castingTime} onChange={this.textInput("castingTime")} placeholder={this.state.placeholders.castingTime} />
                                     </label>
                                     <label>
-                                        Class:<input type="text" value={this.state.values.class === undefined ? "" : this.state.values.class} onChange={this.textInput("class")} placeholder={this.state.placeholders.class} />
-                                    </label>
-                                    <label>
-                                        Color:<input type="text" value={this.state.values.color === undefined ? "" : this.state.values.color} onChange={this.textInput("color")} placeholder={this.state.placeholders.color} />
+                                        Range:<input type="text" value={this.state.values.range === undefined ? "" : this.state.values.range} onChange={this.textInput("range")} placeholder={this.state.placeholders.range} />
                                     </label>
                                     <label>
                                         Components:<input type="text" value={this.state.values.components !== undefined ? this.state.values.components : ""} onChange={this.textInput("components")} placeholder={this.state.placeholders.components !== undefined ? this.state.placeholders.components : ""} />
                                     </label>
                                     <label>
-                                        Description:<input type="text" value={this.state.values.description === undefined ? "" : this.state.values.description} onChange={this.textInput("description")} placeholder={this.state.placeholders.description} />
-                                    </label>
-                                    <label>
                                         Duration:<input type="text" value={this.state.values.duration === undefined ? "" : this.state.values.duration} onChange={this.textInput("duration")} placeholder={this.state.placeholders.duration} />
                                     </label>
                                     <label>
-                                        Extended Description:<input type="text" value={this.state.values.extDescription === undefined ? "" : this.state.values.extDescription} onChange={this.textInput("extDescription")} placeholder={this.state.placeholders.extDescription} />
+                                        Physical Components:<textarea value={this.state.values.physicalComponents === undefined ? "" : this.state.values.physicalComponents} onChange={this.textInput("physicalComponents")} placeholder={this.state.placeholders.physicalComponents} />
                                     </label>
                                     <label>
-                                        Image:
-                                        <img src={this.state.values.image} />
-                                        <input type="file" accept="image/*" onChange={this.fileInput} ref={this.imageRef} />
+                                        Description:<textarea value={this.state.values.description === undefined ? "" : this.state.values.description} onChange={this.textInput("description")} placeholder={this.state.placeholders.description} />
+                                    </label>
+                                    <label>
+                                        Extended Description:<textarea value={this.state.values.extDescription === undefined ? "" : this.state.values.extDescription} onChange={this.textInput("extDescription")} placeholder={this.state.placeholders.extDescription} />
+                                    </label>
+                                    <label>
+                                        Class:<input type="text" value={this.state.values.class === undefined ? "" : this.state.values.class} onChange={this.textInput("class")} placeholder={this.state.placeholders.class} />
+                                    </label>
+                                    <label>
+                                        Type:<input type="text" value={this.state.values.type === undefined ? "" : this.state.values.type} onChange={this.textInput("type")} placeholder={this.state.placeholders.type} />
                                     </label>
                                     <label>
                                         Level:<input type="number" value={this.state.values.level === undefined ? "" : this.state.values.level} onChange={this.textInput("level")} placeholder={this.state.placeholders.level !== undefined ? this.state.placeholders.level.toString() : undefined} />
                                     </label>
                                     <label>
-                                        Physical Components:<input type="text" value={this.state.values.physicalComponents === undefined ? "" : this.state.values.physicalComponents} onChange={this.textInput("physicalComponents")} placeholder={this.state.placeholders.physicalComponents} />
+                                        Color:<input type="text" value={this.state.values.color === undefined ? "" : this.state.values.color} onChange={this.textInput("color")} placeholder={this.state.placeholders.color} />
                                     </label>
                                     <label>
-                                        Range:<input type="text" value={this.state.values.range === undefined ? "" : this.state.values.range} onChange={this.textInput("range")} placeholder={this.state.placeholders.range} />
-                                    </label>
-                                    <label>
-                                        Type:<input type="text" value={this.state.values.type === undefined ? "" : this.state.values.type} onChange={this.textInput("type")} placeholder={this.state.placeholders.type} />
+                                        Image:
+                                        <img src={this.state.values.image} />
+                                        <input type="file" accept="image/*" onChange={this.fileInput} ref={this.imageRef} />
                                     </label>
 
                                     <button className={`save ${this.state.saved ? "saved" : "unsaved"}`} onClick={this.saveClick}>Save</button>
