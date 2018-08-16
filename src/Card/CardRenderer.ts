@@ -90,7 +90,7 @@ export async function renderCard(card: Card) {
     // Image
     let image = new Image();
     image.src = `data:image/png;${card.image}`;
-    backSVG.image(grayscale(image), 20).center(width / 2, height / 2);
+    backSVG.image(grayscale(image, parseColor(card.color !== undefined ? card.color : "")), 20).center(width / 2, height / 2);
 }
 
 function ordinalSuffixOf(i: number) {
@@ -108,7 +108,7 @@ function ordinalSuffixOf(i: number) {
     return `${i}th`;
 }
 
-function grayscale(image: HTMLImageElement) {
+function grayscale(image: HTMLImageElement, [red, green, blue]: [number, number, number]) {
     let canvas = document.createElement("canvas");
     let ctx = canvas.getContext("2d");
     if (ctx !== null) {
@@ -128,11 +128,67 @@ function grayscale(image: HTMLImageElement) {
         // This loop gets every pixels on the image and
         for (let i = 0; i < data.length; i += 4) {
             let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-            data[i]     = 255; // red
-            data[i + 1] = avg; // green
-            data[i + 2] = avg; // blue
-          }
-          ctx.putImageData(imageData, 0, 0);
+            data[i] = avg / 255 * red; // red
+            data[i + 1] = avg / 255 * green; // green
+            data[i + 2] = avg / 255 * blue; // blue
+        }
+        ctx.putImageData(imageData, 0, 0);
     }
     return canvas.toDataURL();
+}
+
+/**
+ * Copyright 2011 THEtheChad Elliott
+ * Released under the MIT and GPL licenses.
+ */
+
+// Parse hex/rgb{a} color syntax.
+// @input string
+// @returns array [r,g,b{,o}]
+function parseColor(c: string): [number, number, number] {
+
+    let cache;
+    let p = parseInt; // Use p as a byte saving reference to parseInt
+    let color = c.replace(/\s\s*/g, ""); // Remove all spaces
+
+    // Checks for 6 digit hex and converts string to integer
+    // tslint:disable-next-line:no-conditional-assignment strict-boolean-expressions
+    if (cache = /^#([\da-fA-F]{2})([\da-fA-F]{2})([\da-fA-F]{2})/.exec(color)) {
+        cache = [p(cache[1], 16), p(cache[2], 16), p(cache[3], 16)];
+    }
+
+    // Checks for 3 digit hex and converts string to integer
+    // tslint:disable-next-line:no-conditional-assignment strict-boolean-expressions
+    else if (cache = /^#([\da-fA-F])([\da-fA-F])([\da-fA-F])/.exec(color)) {
+        cache = [p(cache[1], 16) * 17, p(cache[2], 16) * 17, p(cache[3], 16) * 17];
+    }
+
+    // Checks for rgba and converts string to
+    // integer/float using unary + operator to save bytes
+    // tslint:disable-next-line:no-conditional-assignment strict-boolean-expressions
+    else if (cache = /^rgba\(([\d]+),([\d]+),([\d]+),([\d]+|[\d]*.[\d]+)\)/.exec(color)) {
+        cache = [+cache[1], +cache[2], +cache[3], +cache[4]];
+    }
+
+    // Checks for rgb and converts string to
+    // integer/float using unary + operator to save bytes
+    // tslint:disable-next-line:no-conditional-assignment strict-boolean-expressions
+    else if (cache = /^rgb\(([\d]+),([\d]+),([\d]+)\)/.exec(color)) {
+        cache = [+cache[1], +cache[2], +cache[3]];
+    }
+
+    // Otherwise throw an exception to make debugging easier
+    else {
+        throw Error(`${color} is not supported by parseColor`);
+    }
+
+    // Performs RGBA conversion by default
+    // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
+    isNaN(cache[3]) && (cache[3] = 1);
+
+    // Adds or removes 4th value based on rgba support
+    // Support is flipped twice to prevent erros if
+    // it's not defined
+    // tslint:disable-next-line:binary-expression-operand-order
+    return cache.slice(0, 3) as [number, number, number];
 }
