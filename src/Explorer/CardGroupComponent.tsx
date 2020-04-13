@@ -1,10 +1,14 @@
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
+
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
 import { ContextMenuProvider } from "react-contexify";
 import { CardControllerContext } from "../App";
-import ICard from "../Card/Card";
-import CardGroup from "../Card/CardGroup";
+import ICard from "../card/card";
+import CardGroup from "../card/cardGroup";
 import CardComponent from "./CardComponent";
 import Explorer, { SearchContext } from "./Explorer";
 
@@ -66,7 +70,7 @@ export default class CardGroupComponent extends React.Component<IProps, IState> 
                                                 this.props.group.getCards()
                                                     // Map the cards to elements
                                                     .map((card, j) => {
-                                                        let display =
+                                                        const display =
                                                             // Show if the group name is a match and not collapsed
                                                             search !== undefined && this.props.group.name.includes(search) && !this.state.collapsed
                                                             // Or if it is a match and not collapsed

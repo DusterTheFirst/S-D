@@ -1,6 +1,10 @@
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
+
 export async function textFileReaderAsync(file: Blob) {
     return new Promise<string>((resolve, reject) => {
-        let reader = new FileReader();
+        const reader = new FileReader();
         reader.readAsText(file);
         reader.onload = (e) => {
             if (reader.result !== null) {
@@ -15,7 +19,7 @@ export async function textFileReaderAsync(file: Blob) {
 
 export async function dataFileReaderAsync(file: Blob) {
     return new Promise<string>((resolve, reject) => {
-        let reader = new FileReader();
+        const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (e) => {
             if (reader.result !== null) {
@@ -36,8 +40,8 @@ export function download(file: Blob, filename: string) {
         alert(e);
     }
 
-    let link = document.createElement("a");
-    let url = URL.createObjectURL(file);
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(file);
 
     link.href = url;
     link.download = filename;
@@ -93,7 +97,7 @@ export class TwoDimensionalArray<V> {
      */
     public delete(x: number, y?: number): boolean {
         if (y !== undefined) {
-            let xelem = this.array[x];
+            const xelem = this.array[x];
             if (xelem !== undefined) {
                 delete xelem[y];
                 return true;
@@ -122,7 +126,7 @@ export class TwoDimensionalArray<V> {
     /** Check if the two dimensional array has a value */
     public has(x: number, y?: number): boolean {
         if (y !== undefined) {
-            let xarr = this.array[x];
+            const xarr = this.array[x];
             return xarr !== undefined && xarr[y] !== undefined;
         } else {
             return this.array[x] !== undefined;
@@ -135,8 +139,8 @@ export class TwoDimensionalArray<V> {
     public set(x: number, yOrXValue: number | V[], valueOrNothing?: V): this {
         if (typeof yOrXValue === "number") {
             if (valueOrNothing !== undefined) {
-                let value = valueOrNothing;
-                let y = yOrXValue;
+                const value = valueOrNothing;
+                const y = yOrXValue;
 
                 let xarr = this.array[x];
                 if (xarr === undefined) {
@@ -147,7 +151,7 @@ export class TwoDimensionalArray<V> {
                 this.array[x] = xarr;
             }
         } else {
-            let value = yOrXValue;
+            const value = yOrXValue;
             this.array[x] = value;
         }
         return this;
@@ -158,7 +162,7 @@ export class TwoDimensionalArray<V> {
     public get(x: number, y: number): V | undefined;
     public get(x: number, y?: number): V | V[] | undefined {
         if (y !== undefined) {
-            let xarr = this.array[x];
+            const xarr = this.array[x];
 
             if (xarr !== undefined) {
                 return xarr[y];

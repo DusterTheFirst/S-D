@@ -1,12 +1,17 @@
-import * as SVG from "svg.js";
-import Card from "./Card";
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
 
+import SVG from "svg.js";
+import Card from "./card";
+
+/** Render a given card onto the canvas */
 export async function renderCard(card: Card) {
     const width = 50;
     const height = 70;
 
     // Front
-    let frontSVG = SVG("cardfrontcanvas").size(width, height);
+    const frontSVG = SVG("cardfrontcanvas").size(width, height);
 
     // Allow resizing
     frontSVG.viewbox(0, 0, width, height);
@@ -38,15 +43,15 @@ export async function renderCard(card: Card) {
     // Phys Components
     let descriptionOffset = 0;
     if (card.physicalComponents !== undefined) {
-        let line = frontSVG.line(0, 24.5, width, 24.5).stroke({ color: card.color });
-        let text = frontSVG.text(card.physicalComponents).size(2.5).move(2, 23).fill("white");
+        const line = frontSVG.line(0, 24.5, width, 24.5).stroke({ color: card.color });
+        const text = frontSVG.text(card.physicalComponents).size(2.5).move(2, 23).fill("white");
         descriptionOffset = text.bbox().height;
         line.stroke({ width: descriptionOffset }).move(0, descriptionOffset / 2 + 23.5);
     }
     // Description
     let extDescrtiptionOffset = 0;
     if (card.description !== undefined) {
-        let text = frontSVG.text(card.description).size(2.5).move(2.25, descriptionOffset + 23.5);
+        const text = frontSVG.text(card.description).size(2.5).move(2.25, descriptionOffset + 23.5);
         extDescrtiptionOffset = text.bbox().height;
     }
     // Ext Description
@@ -58,15 +63,15 @@ export async function renderCard(card: Card) {
     frontSVG.text(card.class !== undefined ? card.class : "").size(2).move(2.5, height - 3.5).fill("white");
     // Type and level
     let tal = "";
-    let cardlevel = parseInt(card.level !== undefined ? card.level : "0", 10);
+    const cardlevel = parseInt(card.level !== undefined ? card.level : "0", 10);
     if (!isNaN(cardlevel)) {
         tal = cardlevel === 0 ? `${card.type} cantrip` : `${ordinalSuffixOf(cardlevel)} level ${card.type}`;
     }
-    let rtltext = frontSVG.text(tal).size(2).fill("white");
+    const rtltext = frontSVG.text(tal).size(2).fill("white");
     rtltext.move(width - rtltext.length() - 2, height - 3.5);
 
     // Back
-    let backSVG = SVG("cardbackcanvas").size(width, height);
+    const backSVG = SVG("cardbackcanvas").size(width, height);
     // Alow resixing
     backSVG.viewbox(0, 0, width, height);
     // Border
@@ -80,22 +85,23 @@ export async function renderCard(card: Card) {
     backSVG.line(5, height / 2, width / 2, height - 5).stroke({ color: card.color, width: 0.5 });
     backSVG.line(width - 5, height / 2, width / 2, height - 5).stroke({ color: card.color, width: 0.5 });
     // Numbers
-    let cardleveltext = card.level !== undefined ? card.level : "0";
-    let cardleveloffset = cardleveltext.length === 1 ? 9 : 7;
-    let cardlevelsize = cardleveltext.length > 2 ? 7 : 10;
-    let num = backSVG.text(cardleveltext).size(cardlevelsize).font({ weight: "bold" }).fill({ color: card.color });
+    const cardleveltext = card.level !== undefined ? card.level : "0";
+    const cardleveloffset = cardleveltext.length === 1 ? 9 : 7;
+    const cardlevelsize = cardleveltext.length > 2 ? 7 : 10;
+    const num = backSVG.text(cardleveltext).size(cardlevelsize).font({ weight: "bold" }).fill({ color: card.color });
     num.move(width - cardleveloffset - num.length(), 6);
-    let num2 = backSVG.text(cardleveltext).size(cardlevelsize).font({ weight: "bold" }).fill({ color: card.color });
+    const num2 = backSVG.text(cardleveltext).size(cardlevelsize).font({ weight: "bold" }).fill({ color: card.color });
     num2.move(cardleveloffset - 1, height - 7 - cardlevelsize);
     // Image
-    let image = new Image();
+    const image = new Image();
     image.src = `data:image/png;${card.image}`;
-    backSVG.image(grayscale(image, parseColor(card.color !== undefined ? card.color : "")), 20).center(width / 2, height / 2);
+    backSVG.image(tint(image, parseColor(card.color !== undefined ? card.color : "")), 20).center(width / 2, height / 2);
 }
 
+/** Add a suffix to a number */
 function ordinalSuffixOf(i: number) {
-    let j = i % 10;
-    let k = i % 100;
+    const j = i % 10;
+    const k = i % 100;
     if (j === 1 && k !== 11) {
         return `${i}st`;
     }
@@ -104,16 +110,18 @@ function ordinalSuffixOf(i: number) {
     }
     if (j === 3 && k !== 13) {
         return `${i}rd`;
+    } else {
+        return `${i}th`;
     }
-    return `${i}th`;
 }
 
-function grayscale(image: HTMLImageElement, [red, green, blue]: [number, number, number]) {
-    let canvas = document.createElement("canvas");
-    let ctx = canvas.getContext("2d");
+/** Add a tint to a greyscaled image */
+function tint(image: HTMLImageElement, [red, green, blue]: [number, number, number]) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     if (ctx !== null) {
-        let imgWidth = image.width;
-        let imgHeight = image.height;
+        const imgWidth = image.width;
+        const imgHeight = image.height;
         // You'll get some string error if you fail to specify the dimensions
         canvas.width = imgWidth;
         canvas.height = imgHeight;
@@ -122,18 +130,19 @@ function grayscale(image: HTMLImageElement, [red, green, blue]: [number, number,
 
         // This function cannot be called if the image is not rom the same domain.
         // You'll get security error if you do.
-        let imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
-        let data = imageData.data;
+        const imageData = ctx.getImageData(0, 0, imgWidth, imgHeight);
+        const data = imageData.data;
 
         // This loop gets every pixels on the image and
         for (let i = 0; i < data.length; i += 4) {
-            let avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+            const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
             data[i] = avg / 255 * red; // red
             data[i + 1] = avg / 255 * green; // green
             data[i + 2] = avg / 255 * blue; // blue
         }
         ctx.putImageData(imageData, 0, 0);
     }
+
     return canvas.toDataURL();
 }
 
@@ -148,8 +157,8 @@ function grayscale(image: HTMLImageElement, [red, green, blue]: [number, number,
 function parseColor(c: string): [number, number, number] {
 
     let cache;
-    let p = parseInt; // Use p as a byte saving reference to parseInt
-    let color = c.replace(/\s\s*/g, ""); // Remove all spaces
+    const p = parseInt; // Use p as a byte saving reference to parseInt
+    const color = c.replace(/\s\s*/g, ""); // Remove all spaces
 
     // Checks for 6 digit hex and converts string to integer
     // tslint:disable-next-line:no-conditional-assignment strict-boolean-expressions

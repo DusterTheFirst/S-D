@@ -1,35 +1,50 @@
 {
-    "name": "sd",
-    "version": "0.1.0",
-    "private": true,
-    "homepage": "https://dusterthefirst.github.io/sd",
-    "dependencies": {
-        "@fortawesome/fontawesome-svg-core": "^1.2.0-14",
-        "@fortawesome/free-solid-svg-icons": "^5.1.0-11",
-        "@fortawesome/react-fontawesome": "0.1.0-11",
-        "react": "^16.4.1",
-        "react-contexify": "^3.0.3",
-        "react-dom": "^16.4.1",
-        "react-modal": "^3.5.1",
-        "react-scripts-ts": "^2.16.0",
-        "svg.js": "^2.6.5"
-    },
-    "scripts": {
-        "start": "react-scripts-ts start",
-        "build": "react-scripts-ts build",
-        "test": "react-scripts-ts test --env=jsdom",
-        "eject": "react-scripts-ts eject",
-        "sass": "node-sass ./src/ -o ./src/ && node-sass -w ./src/ -o ./src/ --error-bell",
-        "predeploy": "npm run build",
-        "deploy": "gh-pages -d build"
-    },
-    "devDependencies": {
-        "@types/jest": "^23.1.5",
-        "@types/node": "^10.5.2",
-        "@types/react": "^16.4.6",
-        "@types/react-dom": "^16.0.6",
-        "@types/react-modal": "^3.2.0",
-        "gh-pages": "^1.2.0",
-        "typescript": "^3.0.1"
-    }
+  "name": "sd",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://sd.dusterthefirst.com",
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.0-14",
+    "@fortawesome/free-solid-svg-icons": "^5.1.0-11",
+    "@fortawesome/react-fontawesome": "0.1.9",
+    "mobx": "^5.15.4",
+    "mobx-persist": "^0.4.1",
+    "mobx-react-lite": "^2.0.6",
+    "react": "^16.4.1",
+    "react-contexify": "^4.1.1",
+    "react-dom": "^16.4.1",
+    "react-modal": "^3.5.1",
+    "react-scripts": "^3.4.1",
+    "styled-components": "^5.1.0",
+    "svg.js": "^2.6.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "lint": "tslint --project .",
+    "exportlint": "ts-unused-exports tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/react": "^16.4.6",
+    "@types/react-dom": "^16.0.6",
+    "@types/react-modal": "^3.2.0",
+    "ts-unused-exports": "^6.1.2",
+    "tslint": "^6.1.1",
+    "tslint-react": "^4.2.0",
+    "typescript": "^3.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
 }

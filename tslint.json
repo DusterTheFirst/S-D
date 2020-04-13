@@ -1,15 +1,9 @@
 {
     "extends": [
+        "tslint:latest",
         "tslint:recommended",
-        "tslint-react",
-        "tslint-config-prettier"
+        "tslint-react"
     ],
-    "linterOptions": {
-        "exclude": [
-            "config/**/*.js",
-            "node_modules/**/*.ts"
-        ]
-    },
     "rules": {
         "adjacent-overload-signatures": true,
         "align": true,
@@ -30,13 +24,37 @@
             true,
             "check-space"
         ],
-        "completed-docs": false,
+        "completed-docs": [
+            true,
+            "classes",
+            "enums",
+            "functions",
+            "interfaces",
+            "methods",
+            "namespaces",
+            "properties",
+            "types",
+            "variables"
+        ],
         "curly": true,
         "cyclomatic-complexity": true,
         "deprecation": true,
         "encoding": true,
         "eofline": false,
-        "file-header": false,
+        "file-header": [
+            true,
+            "Copyright \\(C\\) 2018-2020  Zachary Kohnen \\(DusterTheFirst\\)",
+            "Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)"
+        ],
+        "file-name-casing": [
+            true,
+            {
+                "index.ts(x)": "camel-case",
+                "App.ts": "pascal-case",
+                ".tsx": "pascal-case",
+                ".ts": "camel-case"
+            }
+        ],
         "forin": false,
         "import-blacklist": false,
         "import-spacing": true,
@@ -56,13 +74,13 @@
         "max-line-length": false,
         "member-access": true,
         "member-ordering": false,
-        "new-parens": false,
-        "newline-before-return": false,
+        "new-parens": true,
+        "newline-before-return": true,
         "newline-per-chained-call": false,
         "no-angle-bracket-type-assertion": true,
         "no-any": true,
         "no-arg": true,
-        "no-bitwise": false,
+        "no-bitwise": true,
         "no-boolean-literal-compare": true,
         "no-conditional-assignment": true,
         "no-consecutive-blank-lines": true,
@@ -74,14 +92,17 @@
         "no-duplicate-super": true,
         "no-duplicate-switch-case": true,
         "no-duplicate-variable": true,
-        "no-dynamic-delete": false,
+        "no-dynamic-delete": true,
         "no-empty": true,
         "no-empty-interface": true,
         "no-eval": true,
-        "no-floating-promises": false,
+        "no-floating-promises": true,
         "no-for-in-array": true,
-        "no-implicit-dependencies": true,
-        "no-import-side-effect": false,
+        "no-implicit-dependencies": [
+            true,
+            "dev"
+        ],
+        "no-import-side-effect": true,
         "no-inferrable-types": true,
         "no-inferred-empty-object-type": true,
         "no-internal-module": true,
@@ -92,7 +113,7 @@
         "no-mergeable-namespace": true,
         "no-misused-new": true,
         "no-namespace": false,
-        "no-non-null-assertion": false,
+        "no-non-null-assertion": true,
         "no-null-keyword": false,
         "no-object-literal-type-assertion": true,
         "no-parameter-properties": true,
@@ -110,7 +131,13 @@
         "no-switch-case-fall-through": true,
         "no-this-assignment": true,
         "no-trailing-whitespace": true,
-        "no-unbound-method": true,
+        "no-unbound-method": [
+            true,
+            {
+                "ignore-static": true,
+                "allow-typeof": true
+            }
+        ],
         "no-unnecessary-callback-wrapper": true,
         "no-unnecessary-class": true,
         "no-unnecessary-initializer": true,
@@ -119,7 +146,6 @@
         "no-unsafe-any": true,
         "no-unsafe-finally": true,
         "no-unused-expression": true,
-        "no-use-before-declare": true,
         "no-var-keyword": true,
         "no-var-requires": true,
         "no-void-expression": [
@@ -135,14 +161,15 @@
         "only-arrow-functions": false,
         "ordered-imports": true,
         "prefer-conditional-expression": true,
-        "prefer-const": false,
+        "prefer-const": true,
         "prefer-for-of": true,
         "prefer-function-over-method": false,
         "prefer-method-signature": true,
         "prefer-object-spread": true,
         "prefer-readonly": true,
-        "prefer-switch": true,
+        "prefer-switch": false,
         "prefer-template": true,
+        "prefer-while": true,
         "promise-function-async": true,
         "quotemark": [
             true,
@@ -174,7 +201,8 @@
             true,
             "check-format",
             "allow-leading-underscore",
-            "allow-pascal-case"
+            "allow-pascal-case",
+            "ban-keywords"
         ],
         "whitespace": true
     }

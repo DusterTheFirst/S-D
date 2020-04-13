@@ -1,8 +1,12 @@
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
+
 import * as React from "react";
 import { ContextMenuProvider } from "react-contexify";
 import { CardControllerContext } from "../App";
-import ICard from "../Card/Card";
-import CardGroup from "../Card/CardGroup";
+import ICard from "../card/card";
+import CardGroup from "../card/cardGroup";
 import Explorer, { SearchContext } from "./Explorer";
 
 interface IProps {

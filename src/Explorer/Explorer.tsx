@@ -1,10 +1,14 @@
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
+
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
 import { ContextMenu, Item, ItemCallback, Separator } from "react-contexify";
 import * as ReactModal from "react-modal";
 import { CardControllerContext, ICardController, ISelection} from "../App";
-import CardGroup, { ICardGroup } from "../Card/CardGroup";
+import CardGroup, { ICardGroup } from "../card/cardGroup";
 import { download, textFileReaderAsync } from "../Util";
 import CardGroupComponent from "./CardGroupComponent";
 import "./Explorer.css";
@@ -111,12 +115,12 @@ export default class Explorer extends React.Component<unknown, IState> {
             });
 
             for (let i = 0; i < event.dataTransfer.items.length; i++) {
-                let file = event.dataTransfer.files[i];
+                const file = event.dataTransfer.files[i];
 
                 if (file.type === "application/json" || file.name.endsWith(".json")) {
-                    let contents = await textFileReaderAsync(file);
+                    const contents = await textFileReaderAsync(file);
 
-                    let group = new CardGroup(JSON.parse(contents) as ICardGroup);
+                    const group = new CardGroup(JSON.parse(contents) as ICardGroup);
 
                     cards.addGroup(group);
                     cards.select(cards.groups.length);
@@ -194,13 +198,13 @@ export default class Explorer extends React.Component<unknown, IState> {
                                             );
                                         }
 
-                                        let cardid = this.state.deleteModal.card;
-                                        let groupid = this.state.deleteModal.group;
+                                        const cardid = this.state.deleteModal.card;
+                                        const groupid = this.state.deleteModal.group;
 
-                                        let group = cards.groups[groupid];
+                                        const group = cards.groups[groupid];
 
                                         if (group !== undefined) {
-                                            let card = group.getCard(cardid);
+                                            const card = group.getCard(cardid);
 
                                             return (
                                                 <div className="dialog">
@@ -251,9 +255,9 @@ export default class Explorer extends React.Component<unknown, IState> {
         })
 
     private readonly groupContextDownloadClick = (info: ItemCallback) => {
-        let { selectedGroup } = info.data as ICardController;
+        const { selectedGroup } = info.data as ICardController;
 
-        let str = JSON.stringify(selectedGroup);
+        const str = JSON.stringify(selectedGroup);
 
         if (selectedGroup !== undefined) {
             download(new Blob([str], {type: "application/json"}), `${selectedGroup.name}.json`);
@@ -261,8 +265,8 @@ export default class Explorer extends React.Component<unknown, IState> {
     }
 
     private readonly groupContextAddClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
-        let { addCard, select, selectedGroup } = info.data as ICardController;
+        const selection = info.dataFromProvider as ISelection;
+        const { addCard, select, selectedGroup } = info.data as ICardController;
 
         if (selectedGroup !== undefined) {
             addCard(selection.group);
@@ -271,14 +275,14 @@ export default class Explorer extends React.Component<unknown, IState> {
     }
 
     private readonly groupContextEditClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
-        let { select } = info.data as ICardController;
+        const selection = info.dataFromProvider as ISelection;
+        const { select } = info.data as ICardController;
 
         select(selection.group, selection.card);
     }
 
     private readonly contextDeleteClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
+        const selection = info.dataFromProvider as ISelection;
 
         this.setState({
             deleteModal: {
@@ -311,8 +315,8 @@ export default class Explorer extends React.Component<unknown, IState> {
     }
 
     private readonly cardContextDuplicateClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
-        let { addCard, select, selectedGroup } = info.data as ICardController;
+        const selection = info.dataFromProvider as ISelection;
+        const { addCard, select, selectedGroup } = info.data as ICardController;
 
         if (selectedGroup !== undefined) {
             addCard(selection.group, selectedGroup.getRawCard(selection.card));
@@ -321,31 +325,31 @@ export default class Explorer extends React.Component<unknown, IState> {
     }
 
     private readonly cardContextUpClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
-        let { moveCard, select } = info.data as ICardController;
+        const selection = info.dataFromProvider as ISelection;
+        const { moveCard, select } = info.data as ICardController;
 
         moveCard(selection.group, selection.card, selection.card - 1);
         select(selection.group, selection.card - 1);
     }
 
     private readonly cardContextDownClick = (info: ItemCallback) => {
-        let selection = info.dataFromProvider as ISelection;
-        let { moveCard, select } = info.data as ICardController;
+        const selection = info.dataFromProvider as ISelection;
+        const { moveCard, select } = info.data as ICardController;
 
         moveCard(selection.group, selection.card, selection.card + 1);
         select(selection.group, selection.card + 1);
     }
 
     private readonly cardContextUpDisable = (info: ItemCallback): boolean => {
-        let selection = info.dataFromProvider as ISelection;
+        const selection = info.dataFromProvider as ISelection;
         let { } = info.data as ICardController;
 
         return selection.card === 0;
     }
 
     private readonly cardContextDownDisable = (info: ItemCallback): boolean => {
-        let selection = info.dataFromProvider as ISelection;
-        let { selectedGroup } = info.data as ICardController;
+        const selection = info.dataFromProvider as ISelection;
+        const { selectedGroup } = info.data as ICardController;
 
         if (selectedGroup !== undefined) {
             return selection.card === selectedGroup.getRawCards().length - 1;

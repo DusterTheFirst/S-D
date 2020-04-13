@@ -1,3 +1,7 @@
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
+
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as ReactModal from "react-modal";

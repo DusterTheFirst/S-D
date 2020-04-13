@@ -1,80 +1,89 @@
-import ICard from "./Card";
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
 
-export interface ICardGroup {
+import ICard from "./card";
+
+/** A bare representation of a group of cards with no helpers */
+export interface ICardGroupMeta {
+    /** The name of the group */
     name: string;
-    settings?: ICard;
-    cards?: ICard[];
+    /** The defaults for the cards */
+    defaults: ICard;
 }
+
+/** A group of cards */
 export default class CardGroup {
-    public name: string;
+    /** The metadata of the group */
+    public readonly metadata: ICardGroupMeta;
+    /** The child cards of the group */
+    private readonly cards: ICard[] = [];
 
-    public settings: ICard;
-    private readonly cards: ICard[];
-
-    constructor(defaults: ICardGroup) {
-        if ((defaults as { name?: string }).name === undefined) {
-            throw TypeError("Given defaults are not of type ICardGroup");
-        }
-
-        this.cards = defaults.cards === undefined ? [] : defaults.cards;
-        this.settings = defaults.settings === undefined ? {} : defaults.settings;
-        this.name = defaults.name;
+    /** The amount of cards in the group */
+    public get length() {
+        return this.cards.length;
     }
 
-    public addCard(card?: ICard): this {
-        let cardtoadd: ICard = card === undefined ? {} : card;
-        if (cardtoadd.name === undefined) {
-            cardtoadd.name = "Unnamed";
+    constructor(metadata: ICardGroupMeta) {
+        this.metadata = metadata;
+    }
+
+    /** Add a card to the group */
+    public addCard(card: ICard = {}): this {
+        if (card.name === undefined) {
+            card.name = "Unnamed";
         }
 
-        this.cards.push(cardtoadd);
+        this.cards.push(card);
 
         return this;
     }
 
-    public moveCard(card: number, newpos: number): this {
-        let [oldcard] = this.cards.splice(card, 1);
-        this.cards.splice(newpos, 0, oldcard);
+    /** Move a cards position */
+    public moveCard(oldpos: number, newpos: number): this {
+        const [card] = this.cards.splice(oldpos, 1);
+        this.cards.splice(newpos, 0, card);
 
         return this;
     }
 
+    /** Get the cards stored in the group */
     public getCards(): ICard[] {
-        let outputcards: ICard[] = [];
-
-        for (let i = 0; i < this.cards.length; i++) {
-            outputcards.push(this.getCard(i));
-        }
-
-        return outputcards;
+        return this.cards.map(card => ({ ...this.metadata.defaults, ...card }));
     }
 
-    public getCard(i: number): ICard {
-        let card = { ... this.cards[i] };
-
-        // Inherit the settings
-        for (let prop in this.settings) {
-            if (!card[prop]) {
-                card[prop] = this.settings[prop];
-            }
-        }
-
-        return card;
-    }
-
-    public getRawCard(i: number): ICard {
-        return this.cards[i];
-    }
-
+    /** Get the cards stored in the group without their defaults applied */
     public getRawCards(): ICard[] {
         return this.cards;
     }
 
+    /** Get a card from the group */
+    public getCard(i: number): ICard {
+        return { ...this.metadata.defaults, ... this.cards[i] };
+    }
+
+    /** Get a card from the group without the defaults applied */
+    public getRawCard(i: number): ICard {
+        return this.cards[i];
+    }
+
+    /** Remove a card from the group */
     public removeCard(i: number): ICard {
         return this.cards.splice(i, 1)[0];
     }
 
-    public editCard(i: number, card: ICard) {
-        this.cards[i] = card;
+    /** Change the value of a card in the group */
+    public editCard<K extends keyof ICard>(card: number, key: K, value: ICard[K]) {
+        this.cards[card] = { ...this.cards[card], [key]: value };
+    }
+
+    /** Change the value of the groups defaults */
+    public editDefaults<K extends keyof ICard>(key: K, value: ICard[K]) {
+        this.metadata.defaults = { ...this.metadata.defaults, [key]: value };
+    }
+
+    /** Change the value of the groups defaults */
+    public editName(name: string) {
+        this.metadata.name = name;
     }
 }
