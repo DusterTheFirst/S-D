@@ -2,13 +2,14 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
+import { autorun } from "mobx";
 import { create } from "mobx-persist";
-import React, { useContext, useEffect, useLayoutEffect } from "react";
-import "./App.css";
+import React, { useContext, useEffect } from "react";
+import "./App.scss";
 import { renderCard } from "./card/cardRenderer";
-import "./ContextMenu.css";
+import "./ContextMenu.scss";
 import Editor from "./editor/Editor";
-import Explorer from "./Explorer/Explorer";
+import Explorer from "./explorer/Explorer";
 import { GlobalStateContext, SelectionType } from "./state";
 
 /**
@@ -34,15 +35,16 @@ export default function App() {
         });
 
         hydrate("state", globalState);
-    }, []);
 
-    // Card renderer
-    useLayoutEffect(() => {
-        if (globalState.selectionValue.type === SelectionType.Card) {
-            renderCard(globalState.selectionValue.card.filled).catch((e) => console.error(e));
-        } else if (globalState.selectionValue.type === SelectionType.Group) {
-            renderCard(globalState.selectionValue.group.metadata.defaults).catch((e) => console.error(e));
-        }
+        // Card renderer
+        return autorun(() => {
+            if (globalState.selection.type === SelectionType.Card) {
+                renderCard(globalState.selection.card.filled).catch((e) => console.error(e));
+            } else if (globalState.selection.type === SelectionType.Group) {
+                renderCard(globalState.selection.group.value.defaults).catch((e) => console.error(e));
+            }
+        }, { delay: 15 });
+        // eslint-disable-next-line
     }, []);
 
     return (

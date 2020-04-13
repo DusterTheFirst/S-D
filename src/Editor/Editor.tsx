@@ -5,9 +5,9 @@
 import { useObserver } from "mobx-react-lite";
 import React, { createRef, useContext } from "react";
 import ICard from "../card/card";
-import { GlobalStateContext, SelectionType, UserSelection } from "../state";
-import { dataFileReaderAsync } from "../Util";
-import "./Editor.css";
+import { GlobalStateContext, SelectionType } from "../state";
+import { dataFileReaderAsync } from "../util";
+import "./Editor.scss";
 
 /** The editor component */
 export default function Editor() {
@@ -29,9 +29,9 @@ export default function Editor() {
                 event.persist();
 
                 if (state.selection.type === SelectionType.Card) {
-                    state.editCard(state.selection.group.id, state.selection.card.id, name, event.currentTarget.value);
+                    state.editCard(state.selection.group.id, state.selection.card.id, name, event.currentTarget.value === "" ? undefined : event.currentTarget.value);
                 } else if (state.selection.type === SelectionType.Group) {
-                    state.editGroupDefaults(state.selection.group.id, name, event.currentTarget.value);
+                    state.editGroupDefaults(state.selection.group.id, name, event.currentTarget.value === "" ? undefined : event.currentTarget.value);
                 }
             };
         };
@@ -48,37 +48,18 @@ export default function Editor() {
                     }
 
                     state.editCard(state.selection.group.id, state.selection.card.id, "image", image);
-
                 }
             }
         };
 
-        const GroupSettings = (selection: UserSelection) => {
-            if (selection.type !== SelectionType.Group) {
-                return null;
-            }
-
-            const update = (event: React.FormEvent<HTMLInputElement>) => state.editGroupName(selection.group.id, event.currentTarget.value);
-
-            return (
-                <div className="groupsettings">
-                    <div className="title">Group settings</div>
-                    <label>
-                        Name:
-                        <input type="text" value={selection.group.value.metadata.name ?? ""} onChange={update} />
-                    </label>
-                </div>
-            );
-        };
-
         if (state.selection.type !== SelectionType.None) {
-            const cardSettings = state.selection.type === SelectionType.Card ? state.selection.card.raw : state.selection.group.value.metadata.defaults;
-            const placeholders = state.selection.type === SelectionType.Card ? state.selection.group.value.metadata.defaults : undefined;
+            const cardSettings = state.selection.type === SelectionType.Card ? state.selection.card.raw : state.selection.group.value.defaults;
+            const placeholders = state.selection.type === SelectionType.Card ? state.selection.group.value.defaults : undefined;
 
             return (
                 <div className="editor">
                     <div className="values">
-                        <GroupSettings {...state.selection} />
+                        <GroupSettings />
 
                         <div className="title">Card Settings</div>
                         <label>
@@ -115,7 +96,7 @@ export default function Editor() {
                         </label>
                         <label>
                             Class:
-                            <input type="text" value={cardSettings.class ?? ""} onChange={cardValueUpdater("class")} placeholder={placeholders?.class} />
+                            <input type="text" value={cardSettings.clazz ?? ""} onChange={cardValueUpdater("clazz")} placeholder={placeholders?.clazz} />
                         </label>
                         <label>
                             Type:
@@ -127,11 +108,11 @@ export default function Editor() {
                         </label>
                         <label>
                             Color:
-                            <input type="text" value={cardSettings.color ?? ""} onChange={cardValueUpdater("color")} placeholder={placeholders?.color} />
+                            <input type="color" value={cardSettings.color ?? ""} onChange={cardValueUpdater("color")} placeholder={placeholders?.color} />
                         </label>
                         <label>
                             Image:
-                            <img src={cardSettings.image} />
+                            <img src={cardSettings.image} alt="Card Back" />
                             <input type="file" accept="image/*" onChange={fileInput} ref={imageRef} />
                         </label>
 
@@ -145,161 +126,30 @@ export default function Editor() {
     });
 }
 
-export default class Editor extends React.Component<unknown, IState> {
-    private readonly imageRef: React.RefObject<HTMLInputElement>;
+/** The group settings part */
+function GroupSettings() {
+    const state = useContext(GlobalStateContext);
 
-    public constructor(props: unknown, context: unknown) {
-        super(props, context);
+    return useObserver(() => {
+        if (state.selection.type !== SelectionType.Group) {
+            return null;
+        }
 
-        this.state = {
-            group: false,
-            placeholders: {},
-            saved: true,
-            selected: false,
-            selection: { card: -1, group: -1 },
-            values: {},
+        const id = state.selection.group.id;
+
+        const update = (event: React.FormEvent<HTMLInputElement>) => {
+            console.log(id);
+            state.editGroupName(id, event.currentTarget.value);
         };
 
-        this.imageRef = React.createRef();
-    }
-
-    /** Update the selection to the current one */
-    public updateSelection() {
-        // Cache unsaved changes
-        if (!this.state.saved && this.state.selected) {
-            this.updateCache();
-        }
-
-        this.setState(preState => {
-            const newState: IState = preState;
-
-            if (this.cards.selection.group === -1 || this.cards.groups.length === 0) {
-                newState.group = false;
-                newState.selected = false;
-            } else if (this.cards.selection.card === -1) {
-                newState.group = true;
-                newState.selected = true;
-            } else {
-                newState.group = false;
-                newState.selected = true;
-            }
-
-            newState.selection = this.cards.selection;
-
-            newState.placeholders = newState.group && newState.selected
-                ? {}
-                : (this.cards.selectedGroup !== undefined
-                    ? this.cards.selectedGroup.settings
-                    : {});
-
-            if (newState.selected) {
-                const groupChanges = this.cards.getGroupChanges(preState.selection.group);
-                const cardChanges = this.cards.getCardChanges(preState.selection.group, preState.selection.card);
-
-                if (newState.group && groupChanges !== undefined) {
-                    newState.values = groupChanges.defaults;
-                    newState.groupName = groupChanges.groupName;
-                    newState.saved = false;
-                } else if (!newState.group && cardChanges !== undefined) {
-                    newState.values = cardChanges;
-                    newState.groupName = undefined;
-                    newState.saved = false;
-                } else if (newState.group) {
-                    newState.values = this.cards.selectedGroup !== undefined ? this.cards.selectedGroup.settings : {};
-                    newState.groupName = this.cards.selectedGroup ?? "" : this.cards.selectedGroup.name;
-                    newState.saved = true;
-                } else {
-                    newState.values = this.cards.selectedRawCard !== undefined ? this.cards.selectedRawCard : {};
-                    newState.groupName = undefined;
-                    newState.saved = true;
-                }
-            } else {
-                newState.values = {};
-            }
-
-            return newState;
-        });
-    }
-
-    public componentDidMount() {
-        if (this.state.selection.card !== this.cards.selection.card || this.state.selection.group !== this.cards.selection.group) {
-            this.updateSelection();
-        }
-    }
-    public componentDidUpdate() {
-        if (this.state.selection.card !== this.cards.selection.card || this.state.selection.group !== this.cards.selection.group) {
-            this.updateSelection();
-        }
-    }
-
-    /** Update the internal cache values of a text value */
-    private textInput(name: keyof ICard) {
-        return (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-            event.persist();
-            const target = event.currentTarget;
-
-            this.setState(preState => {
-                const values = { ...preState.values };
-                values[name] = target.value;
-                return {
-                    saved: false,
-                    values
-                };
-            }, this.updateCache);
-        };
-    }
-
-    /** Update the internal cache values of group's name */
-    private readonly groupNameInput = (event: React.FormEvent<HTMLInputElement>) => {
-        event.persist();
-        const target = event.currentTarget;
-
-        this.setState({
-            groupName: target.value,
-            saved: false
-        }, this.updateCache);
-    }
-
-
-
-    private readonly updateCache = () => {
-        if (this.state.group) {
-            this.cards.setGroupChanges(this.state.selection.group, {
-                defaults: cardSettings,
-                groupName: this.state.groupName
-            });
-        } else {
-            this.cards.setCardChanges(this.state.selection.group, this.state.selection.card, cardSettings);
-        }
-    }
-
-    /** Push the cached values into the master */
-    private pushValues() {
-        if (this.cards.selectedGroup !== undefined) {
-            if (this.state.group) {
-                this.cards.selectedGroup.settings = cardSettings;
-                this.cards.selectedGroup.name = this.state.groupName ?? "" : this.state.groupName;
-            } else {
-                this.cards.selectedGroup.editCard(this.state.selection.card, cardSettings);
-            }
-
-            if (this.state.group) {
-                this.cards.setGroupChanges(this.state.selection.group, undefined);
-            } else {
-                this.cards.setCardChanges(this.state.selection.group, this.state.selection.card, undefined);
-            }
-
-            this.cards.save();
-
-            this.setState({
-                saved: true
-            });
-
-            this.cards.refresh();
-        }
-    }
-
-    private readonly saveClick = () => this.pushValues();
-
-
+        return (
+            <div className="groupsettings">
+                <div className="title">Group settings</div>
+                <label>
+                    Name:
+                <input type="text" value={state.selection.group.value.name ?? ""} onChange={update} />
+                </label>
+            </div>
+        );
+    });
 }

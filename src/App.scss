@@ -28,8 +28,9 @@
     .renders {
         width: 300px;
         height: 100%;
-        overflow: auto;
+        overflow-y: auto;
         overflow-x: hidden;
+        scrollbar-width: none;
 
         .view {
             width: 300px;

@@ -2,11 +2,13 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import * as ReactModal from "react-modal";
+// tslint:disable-next-line: no-import-side-effect
+import "mobx-react-lite/batchingForReactDom";
+import React from "react";
+import ReactDOM from "react-dom";
+import ReactModal from "react-modal";
 import App from "./App";
-import "./index.css";
+import "./index.scss";
 import registerServiceWorker from "./registerServiceWorker";
 
 ReactModal.setAppElement("#root");

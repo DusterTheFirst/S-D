@@ -17,7 +17,7 @@ export default interface ICard {
     /** The physical components of the card */
     physicalComponents?: string;
     /** The class of the card */
-    class?: string;
+    clazz?: string;
     /** The level of the card */
     level?: string;
     /** The type of the card */

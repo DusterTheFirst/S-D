@@ -10,9 +10,9 @@ import CardGroup from "./card/cardGroup";
 
 /** The tag for the selection enum */
 export enum SelectionType {
-    Card,
-    Group,
-    None
+    None = "none",
+    Group = "group",
+    Card = "card",
 }
 
 /** The user's selection */
@@ -50,13 +50,31 @@ export type UserSelection = {
     };
 };
 
+/** The user's selection */
+export type BareSelection = {
+    /** The type of selection */
+    type: SelectionType.None;
+} | {
+    /** The type of selection */
+    type: SelectionType.Group;
+    /** The current selected group */
+    group: number;
+} | {
+    /** The type of selection */
+    type: SelectionType.Card;
+    /** The current selected group */
+    group: number;
+    /** The current selected card */
+    card: number;
+};
+
 /** The global state of the application */
 export class GlobalState {
     /** The current selection */
-    @observable @persist
-    private _selection: UserSelection = { type: SelectionType.None };
+    @observable @persist("object")
+    private _selection: BareSelection = { type: SelectionType.None };
     /** The groups of cards */
-    @observable @persist
+    @observable @persist("list", CardGroup)
     private readonly _groups: CardGroup[] = [];
 
     constructor() {
@@ -73,8 +91,31 @@ export class GlobalState {
     }
 
     /** The current selection */
-    public get selection() {
-        return this._selection;
+    public get selection(): UserSelection {
+        if (this._selection.type === SelectionType.None) {
+            return this._selection;
+        } else if (this._selection.type === SelectionType.Group) {
+            return {
+                group: {
+                    id: this._selection.group,
+                    value: this._groups[this._selection.group]
+                },
+                type: SelectionType.Group
+            };
+        } else {
+            return {
+                card: {
+                    filled: this._groups[this._selection.group].getCard(this._selection.group),
+                    id: this._selection.group,
+                    raw: this._groups[this._selection.group].getRawCard(this._selection.group)
+                },
+                group: {
+                    id: this._selection.group,
+                    value: this._groups[this._selection.group]
+                },
+                type: SelectionType.Card
+            };
+        }
     }
 
     /** The groups of cards */
@@ -88,23 +129,13 @@ export class GlobalState {
             this._selection = { type: SelectionType.None };
         } else if (card === undefined) {
             this._selection = {
-                group: {
-                    id: group,
-                    value: this._groups[group]
-                },
+                group,
                 type: SelectionType.Group
             };
         } else {
             this._selection = {
-                card: {
-                    filled: this._groups[group].getCard(card),
-                    id: card,
-                    raw: this._groups[group].getRawCard(card)
-                },
-                group: {
-                    id: group,
-                    value: this._groups[group]
-                },
+                card,
+                group,
                 type: SelectionType.Card
             };
         }
@@ -112,11 +143,11 @@ export class GlobalState {
 
     /** Add a card to a group */
     public addCard(group: number, card: ICard = {}) {
-        this.groups[group].addCard(card);
+        return this.groups[group].addCard(card);
     }
     /** Add a group */
     public addGroup(group: CardGroup) {
-        this._groups.push(group);
+        return this._groups.push(group) - 1;
     }
 
     /** Remove a card from a group */

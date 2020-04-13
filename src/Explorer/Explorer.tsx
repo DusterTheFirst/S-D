@@ -4,25 +4,18 @@
 
 import { faPlus, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import * as React from "react";
-import { ContextMenu, Item, ItemCallback, Separator } from "react-contexify";
-import * as ReactModal from "react-modal";
-import { CardControllerContext, ICardController, ISelection} from "../App";
-import CardGroup, { ICardGroup } from "../card/cardGroup";
-import { download, textFileReaderAsync } from "../Util";
+import { useObserver } from "mobx-react-lite";
+import React, { ChangeEvent, DragEvent, UIEvent, useContext, useState } from "react";
+import { Item, Menu, Separator } from "react-contexify";
+import { MenuItemEventHandler } from "react-contexify/lib/types";
+import ReactModal from "react-modal";
+import CardGroup, { ICardGroupData } from "../card/cardGroup";
+import { GlobalStateContext, SelectionType, UserSelection } from "../state";
+import { textFileReaderAsync } from "../util";
 import CardGroupComponent from "./CardGroupComponent";
-import "./Explorer.css";
+import "./Explorer.scss";
 
-interface IState {
-    search?: string;
-    isTop: boolean;
-    dragOver: boolean;
-    deleteModal?: ISelection;
-}
-
-export const SearchContext = React.createContext<string | undefined>(undefined);
-
-export const ModalStyles: { content: React.CSSProperties; overlay: React.CSSProperties} = {
+export const ModalStyles: { content: React.CSSProperties; overlay: React.CSSProperties } = {
     content: {
         background: "#1a1a1a",
         border: "solid 1px #666666",
@@ -42,319 +35,277 @@ export const ModalStyles: { content: React.CSSProperties; overlay: React.CSSProp
         background: "#000000AA"
     }
 };
-
-export default class Explorer extends React.Component<unknown, IState> {
-    private readonly searchRef: React.RefObject<HTMLInputElement>;
-
-    constructor(props: unknown, context?: unknown) {
-        super(props, context);
-
-        this.state = {
-            dragOver: false,
-            isTop: true,
-        };
-
-        this.searchRef = React.createRef<HTMLInputElement>();
+/** Highlight the matches to the match string */
+export function highlightMatches(text?: string, match?: string) {
+    // Only spend time spliting if there is a match to look for
+    if (match !== undefined) {
+        // Split on higlight term and include term into parts, ignore case
+        return text !== undefined ? text.split(new RegExp(`(${match.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")})`, "gi"))
+            .map((part, i) => (
+                // If the part is the same as the search term, give it the class highlight
+                <span className={part.toLowerCase() === match.toLowerCase() ? "highlight" : ""} key={i}>
+                    {part}
+                </span>
+            )) : null;
+    } else {
+        return text;
     }
+}
 
-    /** Listen to the search query changing */
-    private readonly searchChange = (event: React.FormEvent<HTMLInputElement>) => {
-        this.setState({
-            search: event.currentTarget.value
-        });
-    }
+export default function Explorer() {
+    const [search, setSearch] = useState("");
+    const [isDragOver, setDragOver] = useState(false);
+    const [isTop, setTop] = useState(true);
+    const [deleteSelection, setDeleteSelection] = useState<UserSelection>({ type: SelectionType.None });
+    const state = useContext(GlobalStateContext);
+
+    // Map the array of groups to arrays of elements
+    const groupComponents = useObserver(() => state.groups.map((group, i) => <CardGroupComponent key={i} group={group} id={i} search={search} />));
 
     /** Listen for scroll */
-    private readonly onScroll = (event: React.UIEvent<HTMLDivElement>) => {
-        if (this.state.isTop !== event.currentTarget.scrollTop < 30) {
-            this.setState({
-                isTop: event.currentTarget.scrollTop < 30
-            });
+    const onScroll = (event: UIEvent<HTMLDivElement>) => {
+        if (isTop !== (event.currentTarget.scrollTop === 0)) {
+            setTop(event.currentTarget.scrollTop === 0);
         }
-    }
+    };
 
-    /** Highlight the matches to the match string */
-    public static highlightMatches(text?: string, match?: string) {
-        // Only spend time spliting if there is a match to look for
-        if (match !== undefined) {
-            // Split on higlight term and include term into parts, ignore case
-            return text !== undefined ? text.split(new RegExp(`(${match.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")})`, "gi"))
-                .map((part, i) => (
-                    // If the part is the same as the search term, give it the class highlight
-                    <span className={part.toLowerCase() === match.toLowerCase() ? "highlight" : ""} key={i}>
-                        {part}
-                    </span>
-                )) : null;
-        } else {
-            return text;
-        }
-    }
-
-    private readonly clearSearch = () => {
-        if (this.searchRef.current !== null) {
-            this.searchRef.current.value = "";
-
-            this.setState({
-                search: undefined
-            });
-        }
-    }
-
-    private readonly addGroupGenerator = (cards: ICardController, group: CardGroup) => () => {
-        cards.addGroup(group);
-        cards.select(cards.groups.length);
-    }
-
-    private readonly onDrop = (cards: ICardController) =>
-        async (event: React.DragEvent<HTMLDivElement>) => {
+    const onDragEnter = () => setDragOver(true);
+    const onDragExit = () => setDragOver(false);
+    const onDragOver = (event: DragEvent<HTMLDivElement>) => {
+        if (deleteSelection.type === SelectionType.None) {
             event.preventDefault();
-            event.persist();
+        }
+    };
 
-            this.setState({
-                dragOver: false
-            });
+    const onDrop = async (event: DragEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        event.persist();
 
-            for (let i = 0; i < event.dataTransfer.items.length; i++) {
-                const file = event.dataTransfer.files[i];
+        setDragOver(false);
 
-                if (file.type === "application/json" || file.name.endsWith(".json")) {
-                    const contents = await textFileReaderAsync(file);
+        for (let i = 0; i < event.dataTransfer.items.length; i++) {
+            const file = event.dataTransfer.files[i];
 
-                    const group = new CardGroup(JSON.parse(contents) as ICardGroup);
+            if (file.type === "application/json" || file.name.endsWith(".json")) {
+                const contents = await textFileReaderAsync(file);
 
-                    cards.addGroup(group);
-                    cards.select(cards.groups.length);
-                } else {
-                    console.exception(`Format "${file.type}" unrecognised`);
-                }
+                const group = JSON.parse(contents) as ICardGroupData;
+
+                const id = state.addGroup(new CardGroup(group.name, group.defaults, group.cards));
+                state.select(id);
+            } else {
+                console.exception(`Format "${file.type}" unrecognised`);
             }
-
-            event.dataTransfer.items.clear();
         }
 
-    private readonly onDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-        if (this.state.deleteModal === undefined) {
-            event.preventDefault();
+        event.dataTransfer.items.clear();
+    };
+
+    const groupContextDownloadClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const str = JSON.stringify(selectedGroup);
+
+        // if (selectedGroup !== undefined) {
+        //     download(new Blob([str], { type: "application/json" }), `${selectedGroup.name}.json`);
+        // }
+    };
+
+    const groupContextAddClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // const { addCard, select, selectedGroup } = info.data as ICardController;
+
+        // if (selectedGroup !== undefined) {
+        //     addCard(selection.group);
+        //     select(selection.group, selectedGroup.getRawCards().length);
+        // }
+    };
+
+    const groupContextEditClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // const { select } = info.data as ICardController;
+
+        // select(selection.group, selection.card);
+    };
+
+    const contextDeleteClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+
+        // this.setState({
+        //     deleteModal: {
+        //         card: selection.card,
+        //         group: selection.group
+        //     }
+        // });
+    };
+
+    const cardContextDuplicateClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // const { addCard, select, selectedGroup } = info.data as ICardController;
+
+        // if (selectedGroup !== undefined) {
+        //     addCard(selection.group, selectedGroup.getRawCard(selection.card));
+        //     select(selection.group, selectedGroup.getRawCards().length);
+        // }
+    };
+
+    const cardContextUpClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // const { moveCard, select } = info.data as ICardController;
+
+        // moveCard(selection.group, selection.card, selection.card - 1);
+        // select(selection.group, selection.card - 1);
+    };
+
+    const cardContextDownClick = (info: MenuItemEventHandler) => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // const { moveCard, select } = info.data as ICardController;
+
+        // moveCard(selection.group, selection.card, selection.card + 1);
+        // select(selection.group, selection.card + 1);
+    };
+
+    const cardContextUpDisable = (info: MenuItemEventHandler): boolean => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // let { } = info.data as ICardController;
+
+        // return selection.card === 0;
+
+        return true;
+    };
+
+    const cardContextDownDisable = (info: MenuItemEventHandler): boolean => {
+        console.dir(info);
+
+        // const selection = info.dataFromProvider as ISelection;
+        // const { selectedGroup } = info.data as ICardController;
+
+        // if (selectedGroup !== undefined) {
+        //     return selection.card === selectedGroup.getRawCards().length - 1;
+        // } else {
+        //     return true;
+        // }
+
+        return true;
+    };
+
+    const closeDeleteModal = () => setDeleteSelection({ type: SelectionType.None });
+
+    const deleteCard = () => {
+        if (deleteSelection.type === SelectionType.Group) {
+            state.removeGroup(deleteSelection.group.id);
+        } else if (deleteSelection.type === SelectionType.Card) {
+            state.removeCard(deleteSelection.group.id, deleteSelection.card.id);
+        } else {
+            console.warn("Attempted to delete card when no card selected for deletion");
         }
-    }
+    };
 
-    private readonly onDragEnter = (event: React.DragEvent<HTMLDivElement>) =>
-        this.setState(prevState => ({
-            dragOver: prevState.deleteModal === undefined
-        }))
+    const addGroup = () => {
+        const idx = state.addGroup(new CardGroup(`New Group ${state.groups.length}`));
+        state.select(idx);
+    };
 
-    private readonly onDragExit = (event: React.DragEvent<HTMLDivElement>) =>
-        this.setState({
-            dragOver: false
-        })
+    const clearSearch = () => setSearch("");
+    const updateSearch = (e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value);
 
-    public render() {
-        return (
-            <CardControllerContext.Consumer>{
-                cards => (
-                    <div className="explorer">
-                        {/* Search results */}
-                        <div className={`children ${this.state.dragOver ? "dragover" : "nodragover"}`} onScroll={this.onScroll} onDrop={this.onDrop(cards)} onDragOver={this.onDragOver} onDragEnter={this.onDragEnter} onDragExit={this.onDragExit}>
-                            <SearchContext.Provider value={this.state.search}>{
-                                // Map the array of groups to arrays of elements
-                                cards.groups.map((group, i) => {
-                                    if (group !== undefined) {
-                                        return <CardGroupComponent key={i} group={group} id={i}/>;
-                                    } else {
-                                        return undefined;
-                                    }
-                                })
-                            }</SearchContext.Provider>
+    return (
+        <div className="explorer">
+            {/* Search results */}
+            <div className={`children ${isDragOver ? "dragover" : "nodragover"}`} onScroll={onScroll} onDrop={onDrop} onDragOver={onDragOver} onDragEnter={onDragEnter} onDragExit={onDragExit}>
+                {groupComponents}
 
-                            {/* Group context menu */}
-                            <ContextMenu id="group-contextmenu">
-                                <Item onClick={this.groupContextEditClick} data={cards}>Edit</Item>
-                                <Item onClick={this.groupContextAddClick} data={cards}>Add Card</Item>
-                                <Separator />
-                                <Item onClick={this.groupContextDownloadClick} data={cards}>Download</Item>
-                                <Item disabled={true}>Render All</Item>
-                                <Item disabled={true}>Print All</Item>
-                                <Separator />
-                                <Item className="delete" onClick={this.contextDeleteClick} data={cards}>Delete</Item>
-                            </ContextMenu>
+                {/* Group context menu */}
+                <Menu id="group-contextmenu">
+                    <Item onClick={groupContextEditClick}>Edit</Item>
+                    <Item onClick={groupContextAddClick}>Add Card</Item>
+                    <Separator />
+                    <Item onClick={groupContextDownloadClick}>Download</Item>
+                    <Item disabled={true}>Render All</Item>
+                    <Item disabled={true}>Print All</Item>
+                    <Separator />
+                    <Item className="delete" onClick={contextDeleteClick}>Delete</Item>
+                </Menu>
 
-                            {/* Card context menu */}
-                            <ContextMenu id="card-contextmenu">
-                                <Item onClick={this.cardContextDuplicateClick} data={cards}>Duplicate</Item>
-                                <Separator />
-                                <Item onClick={this.cardContextUpClick} data={cards} disabled={this.cardContextUpDisable}>Move Up</Item>
-                                <Item onClick={this.cardContextDownClick} data={cards} disabled={this.cardContextDownDisable}>Move Down</Item>
-                                <Separator />
-                                <Item className="delete" onClick={this.contextDeleteClick} data={cards}>Delete</Item>
-                            </ContextMenu>
+                {/* Card context menu */}
+                <Menu id="card-contextmenu">
+                    <Item onClick={cardContextDuplicateClick}>Duplicate</Item>
+                    <Separator />
+                    <Item onClick={cardContextUpClick} disabled={cardContextUpDisable}>Move Up</Item>
+                    <Item onClick={cardContextDownClick} disabled={cardContextDownDisable}>Move Down</Item>
+                    <Separator />
+                    <Item className="delete" onClick={contextDeleteClick}>Delete</Item>
+                </Menu>
 
-                            <ReactModal isOpen={this.state.deleteModal !== undefined} style={ModalStyles}>
-                                <div className="modal">{(()=>{
-                                        if (this.state.deleteModal === undefined) {
-                                            return (
-                                                <div className="error">
-                                                    You really messed up if you can see this
-                                                </div>
-                                            );
-                                        }
-
-                                        const cardid = this.state.deleteModal.card;
-                                        const groupid = this.state.deleteModal.group;
-
-                                        const group = cards.groups[groupid];
-
-                                        if (group !== undefined) {
-                                            const card = group.getCard(cardid);
-
-                                            return (
-                                                <div className="dialog">
-                                                    Are you sure you want to delete
-                                                    {
-                                                        cardid !== -1
-                                                        ? <span className="info"> <span className="type">card</span> <span className="name">{card.name}</span></span>
-                                                        : <span className="info"> <span className="type">group</span> <span className="name">{group.name}</span> and all of its cards</span>
-                                                    }
-                                                    ?
-                                                </div>
-                                            );
-                                        } else {
-                                            return (
-                                                <div className="error">
-                                                    You really messed up if you can see this
-                                                </div>
-                                            );
-                                        }
-                                    })()}
-                                    <div className="warn">
-                                        This action is <span className="irreversible">irreversible</span>
-                                    </div>
-                                    <div className="buttons">
-                                        <button onClick={this.closeDeleteModal}>Cancel</button>
-                                        <button className="delete" onClick={this.deleteCardgenerator(cards, this.state.deleteModal)}>Delete</button>
-                                    </div>
+                <ReactModal isOpen={deleteSelection.type !== SelectionType.None} style={ModalStyles}>
+                    <div className="modal">{/* {(() => {
+                        if (this.state.deleteModal === undefined) {
+                            return (
+                                <div className="error">
+                                    You really messed up if you can see this
                                 </div>
-                            </ReactModal>
+                            );
+                        }
+
+                        const cardid = this.state.deleteModal.card;
+                        const groupid = this.state.deleteModal.group;
+
+                        const group = cards.groups[groupid];
+
+                        if (group !== undefined) {
+                            const card = group.getCard(cardid);
+
+                            return (
+                                <div className="dialog">
+                                    Are you sure you want to delete
+                                    {
+                                        cardid !== -1
+                                            ? <span className="info"> <span className="type">card</span> <span className="name">{card.name}</span></span>
+                                            : <span className="info"> <span className="type">group</span> <span className="name">{group.name}</span> and all of its cards</span>
+                                    }
+                                                ?
+                                </div>
+                            );
+                        } else {
+                            return (
+                                <div className="error">
+                                    You really messed up if you can see this
+                                </div>
+                            );
+                        }
+                    })()} */}
+                        <div className="warn">
+                            This action is <span className="irreversible">irreversible</span>
                         </div>
-                        {/* Header */}
-                        <div className={`head ${(this.state.isTop ? "top" : "scrolled")}`}>
-                            <div className="search">
-                                <input type="text" onChange={this.searchChange} className={this.state.search !== undefined ? "short" : ""} ref={this.searchRef} />
-                                <div className="x" style={{ display: this.state.search !== undefined ? "" : "none" }} onClick={this.clearSearch}><FontAwesomeIcon icon={faTimes} /></div>
-                            </div>
-                            <div className="add" onClick={this.addGroupGenerator(cards, new CardGroup({name: `New Group ${cards.groups.length}`}))}><FontAwesomeIcon icon={faPlus} /></div>
+                        <div className="buttons">
+                            <button onClick={closeDeleteModal}>Cancel</button>
+                            <button className="delete" onClick={deleteCard}>Delete</button>
                         </div>
                     </div>
-                )
-            }</CardControllerContext.Consumer>
-        );
-    }
-
-    private readonly closeDeleteModal = () =>
-        this.setState({
-            deleteModal: undefined
-        })
-
-    private readonly groupContextDownloadClick = (info: ItemCallback) => {
-        const { selectedGroup } = info.data as ICardController;
-
-        const str = JSON.stringify(selectedGroup);
-
-        if (selectedGroup !== undefined) {
-            download(new Blob([str], {type: "application/json"}), `${selectedGroup.name}.json`);
-        }
-    }
-
-    private readonly groupContextAddClick = (info: ItemCallback) => {
-        const selection = info.dataFromProvider as ISelection;
-        const { addCard, select, selectedGroup } = info.data as ICardController;
-
-        if (selectedGroup !== undefined) {
-            addCard(selection.group);
-            select(selection.group, selectedGroup.getRawCards().length);
-        }
-    }
-
-    private readonly groupContextEditClick = (info: ItemCallback) => {
-        const selection = info.dataFromProvider as ISelection;
-        const { select } = info.data as ICardController;
-
-        select(selection.group, selection.card);
-    }
-
-    private readonly contextDeleteClick = (info: ItemCallback) => {
-        const selection = info.dataFromProvider as ISelection;
-
-        this.setState({
-            deleteModal: {
-                card: selection.card,
-                group: selection.group
-            }
-        });
-    }
-    private deleteCardgenerator({removeGroup, removeCard}: ICardController, selection?: ISelection) {
-        if (selection === undefined) {
-            return () =>
-                this.setState({
-                    deleteModal: undefined
-                });
-        } else if (selection.card === -1) {
-            return () => {
-                this.setState({
-                    deleteModal: undefined
-                });
-                removeGroup(selection.group);
-            };
-        } else {
-            return () => {
-                this.setState({
-                    deleteModal: undefined
-                });
-                removeCard(selection.group, selection.card);
-            };
-        }
-    }
-
-    private readonly cardContextDuplicateClick = (info: ItemCallback) => {
-        const selection = info.dataFromProvider as ISelection;
-        const { addCard, select, selectedGroup } = info.data as ICardController;
-
-        if (selectedGroup !== undefined) {
-            addCard(selection.group, selectedGroup.getRawCard(selection.card));
-            select(selection.group,  selectedGroup.getRawCards().length);
-        }
-    }
-
-    private readonly cardContextUpClick = (info: ItemCallback) => {
-        const selection = info.dataFromProvider as ISelection;
-        const { moveCard, select } = info.data as ICardController;
-
-        moveCard(selection.group, selection.card, selection.card - 1);
-        select(selection.group, selection.card - 1);
-    }
-
-    private readonly cardContextDownClick = (info: ItemCallback) => {
-        const selection = info.dataFromProvider as ISelection;
-        const { moveCard, select } = info.data as ICardController;
-
-        moveCard(selection.group, selection.card, selection.card + 1);
-        select(selection.group, selection.card + 1);
-    }
-
-    private readonly cardContextUpDisable = (info: ItemCallback): boolean => {
-        const selection = info.dataFromProvider as ISelection;
-        let { } = info.data as ICardController;
-
-        return selection.card === 0;
-    }
-
-    private readonly cardContextDownDisable = (info: ItemCallback): boolean => {
-        const selection = info.dataFromProvider as ISelection;
-        const { selectedGroup } = info.data as ICardController;
-
-        if (selectedGroup !== undefined) {
-            return selection.card === selectedGroup.getRawCards().length - 1;
-        } else {
-            return true;
-        }
-    }
+                </ReactModal>
+            </div>
+            {/* Header */}
+            <div className={`head ${(isTop ? "top" : "scrolled")}`}>
+                <div className="search">
+                    <input type="text" onChange={updateSearch} className={search !== "" ? "short" : undefined} value={search} />
+                    <div className="x" style={{ display: search !== "" ? undefined : "none" }} onClick={clearSearch}><FontAwesomeIcon icon={faTimes} /></div>
+                </div>
+                <div className="add" onClick={addGroup}><FontAwesomeIcon icon={faPlus} /></div>
+            </div>
+        </div>
+    );
 }

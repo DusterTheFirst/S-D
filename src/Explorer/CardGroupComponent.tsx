@@ -4,90 +4,77 @@
 
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import * as React from "react";
-import { ContextMenuProvider } from "react-contexify";
-import { CardControllerContext } from "../App";
+import { useObserver } from "mobx-react-lite";
+import React, { useContext, useState } from "react";
+import { MenuProvider } from "react-contexify";
 import ICard from "../card/card";
 import CardGroup from "../card/cardGroup";
+import { GlobalStateContext, SelectionType } from "../state";
 import CardComponent from "./CardComponent";
-import Explorer, { SearchContext } from "./Explorer";
+import { highlightMatches } from "./Explorer";
 
 interface IProps {
     group: CardGroup;
     id: number;
+    search: string;
 }
 
-interface IState {
-    collapsed: boolean;
-}
+export default function CardGroupComponent({ group, id, search }: IProps) {
+    const [collapsed, setCollapsed] = useState(false);
+    const state = useContext(GlobalStateContext);
 
-export default class CardGroupComponent extends React.Component<IProps, IState> {
+    const cardFilter = (filter: string) => {
+        return (card: ICard) => (card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase()));
+    };
 
-    constructor(props: IProps, context: unknown) {
-        super(props, context);
+    // Hide the group if there is a search term AND
+    const hidden = search !== "" && (
+        // If there are no cards in the group that match the filter
+        group.getCards().filter(cardFilter(search)).length === 0
+        // AND the name of the group does not match
+        && !group.name.toLowerCase().includes(search.toLowerCase())
+    );
 
-        this.state = {
-            collapsed: false
-        };
-    }
+    const toggleCollapse = () => setCollapsed(!collapsed);
 
-    private readonly toggleCollapse = () =>
-        this.setState(prevState => ({ collapsed: !prevState.collapsed }))
+    const cards = group.getCards()
+        // Map the cards to elements
+        .map((card, j) => {
+            // Hide the card if there is a search term AND
+            const cardHidden = search !== "" && (
+                // If the group is not selected AND
+                state.selection.type !== SelectionType.Card
+                || state.selection.card.id !== j
+                || state.selection.group.id !== id
+            ) && (
+                    // If the group is collapsed
+                    collapsed
+                    // Or if it is a match
+                    || cardFilter(search)(card)
+                );
 
-    private cardFilter(filter?: string) {
-        return (card: ICard) => (filter !== undefined && card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase())) || filter === undefined;
-    }
+            return <CardComponent key={j} card={card} id={j} groupid={id} hidden={cardHidden} search={search} />;
+        });
 
-    public render() {
-        return (
-            <SearchContext.Consumer>{
-                search => (
-                    <CardControllerContext.Consumer>{
-                        cards => {
-                            return (
-                                <ContextMenuProvider id="group-contextmenu" data={{ card: -1, group: this.props.id }}>
-                                    <div className={`group ${cards.selection.card === -1 && cards.selection.group === this.props.id ? "selected" : "notselected"}`} style={{
-                                        // Show the group if there are results inside of it
-                                        display: search !== undefined && this.props.group.getCards().filter(this.cardFilter(search)).length > 0
-                                            // OR if the group name matches the search
-                                            || search !== undefined && this.props.group.name.includes(search) || search === undefined ? "block" : "none"
-                                    }}>
-                                        <div className="title" onClick={this.toggleCollapse}>
-                                            <div className="caret">
-                                                <FontAwesomeIcon icon={this.state.collapsed ? faCaretRight : faCaretDown} />
-                                            </div>
-                                            <div className="name">
-                                                {
-                                                    // Highlight any text in the name that matches the search query
-                                                    Explorer.highlightMatches(this.props.group.name, search)
-                                                }
-                                                {
-                                                    cards.getGroupChanges(this.props.id) === undefined ? null : " •"
-                                                }
-                                            </div>
-                                        </div>
-                                        <div className="cards">{
-                                                this.props.group.getCards()
-                                                    // Map the cards to elements
-                                                    .map((card, j) => {
-                                                        const display =
-                                                            // Show if the group name is a match and not collapsed
-                                                            search !== undefined && this.props.group.name.includes(search) && !this.state.collapsed
-                                                            // Or if it is a match and not collapsed
-                                                            || this.cardFilter(search)(card) && !this.state.collapsed
-                                                            // Or if it is selected
-                                                            || j === cards.selection.card && this.props.id === cards.selection.group;
-
-                                                        return <CardComponent key={j} card={card} group={this.props.group} id={j} groupid={this.props.id} display={display} />;
-                                                    })
-                                            }</div>
-                                    </div>
-                                </ContextMenuProvider>
-                            );
-                        }
-                    }</CardControllerContext.Consumer>
-                )
-            }</SearchContext.Consumer>
-        );
-    }
+    return useObserver(() => (
+        <MenuProvider id="group-contextmenu" data={{ type: SelectionType.Group, group: id }}>
+            <div
+                className={`group ${state.selection.type === SelectionType.Group && state.selection.group.id === id ? "selected" : "notselected"}`}
+                hidden={hidden}
+            >
+                <div className="title" onClick={toggleCollapse}>
+                    <div className="caret">
+                        <FontAwesomeIcon icon={collapsed ? faCaretRight : faCaretDown} />
+                    </div>
+                    <div className="name">
+                        {/* Highlight any text in the name that matches the search query */}
+                        {highlightMatches(group.name, search)}
+                    </div>
+                </div>
+                <div className="cards">
+                    {cards}
+                </div>
+            </div>
+        </MenuProvider>
+    ));
 }

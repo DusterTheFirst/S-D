@@ -2,47 +2,36 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import * as React from "react";
-import { ContextMenuProvider } from "react-contexify";
-import { CardControllerContext } from "../App";
+import { useObserver } from "mobx-react-lite";
+import React, { useContext } from "react";
+import { MenuProvider } from "react-contexify";
 import ICard from "../card/card";
-import CardGroup from "../card/cardGroup";
-import Explorer, { SearchContext } from "./Explorer";
+import { GlobalStateContext, SelectionType } from "../state";
+import { highlightMatches } from "./Explorer";
 
 interface IProps {
-    group: CardGroup;
     card: ICard;
     id: number;
     groupid: number;
-    display: boolean;
+    hidden: boolean;
+    search: string;
 }
 
-export default class CardComponent extends React.Component<IProps> {
-    public render() {
-        return (
-            <SearchContext.Consumer>{
-                search => (
-                    <CardControllerContext.Consumer>{
-                        cards => (
-                            <ContextMenuProvider id="card-contextmenu" data={{ card: this.props.id, group: this.props.groupid }}>
-                                <div
-                                    className={`card ${cards.selection.card === this.props.id && cards.selection.group === this.props.groupid ? "selected" : "notselected"}`}
-                                    onClick={cards.selectGenerator(this.props.groupid, this.props.id)}
-                                    style={{ display: this.props.display ? "block" : "none" }}
-                                >
-                                    {
-                                        // Highlight any text in the card that matches the search query
-                                        Explorer.highlightMatches(this.props.card.name, search)
-                                    }
-                                    {
-                                        cards.getCardChanges(this.props.groupid, this.props.id) === undefined ? null : " •"
-                                    }
-                                </div>
-                            </ContextMenuProvider>
-                        )
-                    }</CardControllerContext.Consumer>
-                )
-            }</SearchContext.Consumer>
-        );
-    }
+export default function CardComponent({ card, groupid, hidden, id, search }: IProps) {
+    const state = useContext(GlobalStateContext);
+
+    const select = () => state.select(groupid, id);
+
+    return useObserver(() => (
+        <MenuProvider id="card-contextmenu" data={{ type: SelectionType.Card, card: id, group: groupid }}>
+            <div
+                className={`card ${state.selection.type === SelectionType.Card && state.selection.card.id === id && state.selection.group.id === groupid ? "selected" : "notselected"}`}
+                onClick={select}
+                hidden={hidden}
+            >
+                {/* Highlight any text in the card that matches the search query */}
+                {highlightMatches(card.name, search)}
+            </div>
+        </MenuProvider>
+    ));
 }

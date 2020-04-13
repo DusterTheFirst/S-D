@@ -2,41 +2,50 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
+import { observable } from "mobx";
+import { persist } from "mobx-persist";
 import ICard from "./card";
 
-/** A bare representation of a group of cards with no helpers */
-export interface ICardGroupMeta {
+/** The persistant data of a card group */
+export interface ICardGroupData {
     /** The name of the group */
-    name: string;
+    readonly name: string;
     /** The defaults for the cards */
-    defaults: ICard;
+    readonly defaults: ICard;
+    /** The child cards of the group */
+    readonly cards: ICard[];
 }
 
 /** A group of cards */
 export default class CardGroup {
-    /** The metadata of the group */
-    public readonly metadata: ICardGroupMeta;
+    /** The name of the group */
+    @observable @persist
+    public name: string;
+    /** The defaults for the cards */
+    @observable @persist("object")
+    public defaults: ICard;
     /** The child cards of the group */
-    private readonly cards: ICard[] = [];
+    @observable @persist("list")
+    private readonly cards: ICard[];
 
     /** The amount of cards in the group */
     public get length() {
         return this.cards.length;
     }
 
-    constructor(metadata: ICardGroupMeta) {
-        this.metadata = metadata;
+    constructor(name = "", defaults: ICard = {}, cards: ICard[] = []) {
+        this.name = name;
+        this.cards = cards;
+        this.defaults = defaults;
     }
 
     /** Add a card to the group */
-    public addCard(card: ICard = {}): this {
+    public addCard(card: ICard = {}) {
         if (card.name === undefined) {
             card.name = "Unnamed";
         }
 
-        this.cards.push(card);
-
-        return this;
+        return this.cards.push(card);
     }
 
     /** Move a cards position */
@@ -49,7 +58,7 @@ export default class CardGroup {
 
     /** Get the cards stored in the group */
     public getCards(): ICard[] {
-        return this.cards.map(card => ({ ...this.metadata.defaults, ...card }));
+        return this.cards.map(card => ({ ...this.defaults, ...card }));
     }
 
     /** Get the cards stored in the group without their defaults applied */
@@ -59,7 +68,7 @@ export default class CardGroup {
 
     /** Get a card from the group */
     public getCard(i: number): ICard {
-        return { ...this.metadata.defaults, ... this.cards[i] };
+        return { ...this.defaults, ...this.cards[i] };
     }
 
     /** Get a card from the group without the defaults applied */
@@ -79,11 +88,11 @@ export default class CardGroup {
 
     /** Change the value of the groups defaults */
     public editDefaults<K extends keyof ICard>(key: K, value: ICard[K]) {
-        this.metadata.defaults = { ...this.metadata.defaults, [key]: value };
+        this.defaults = { ...this.defaults, [key]: value };
     }
 
     /** Change the value of the groups defaults */
     public editName(name: string) {
-        this.metadata.name = name;
+        this.name = name;
     }
 }
