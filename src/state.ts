@@ -2,10 +2,9 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import { observable, when, action } from "mobx";
+import { action, observable, when } from "mobx";
 import { persist } from "mobx-persist";
 import { createContext } from "react";
-import ICard from "./card/card";
 import CardGroup, { ICardGroupData } from "./card/cardGroup";
 
 /** The tag for the selection enum */
@@ -16,42 +15,7 @@ export enum SelectionType {
 }
 
 /** The user's selection */
-export type UserSelection = {
-    /** The type of selection */
-    type: SelectionType.None;
-} | {
-    /** The type of selection */
-    type: SelectionType.Group;
-    /** The current selected group */
-    group: {
-        /** The group id */
-        id: number;
-        /** The card group */
-        value: CardGroup;
-    };
-} | {
-    /** The type of selection */
-    type: SelectionType.Card;
-    /** The current selected group */
-    group: {
-        /** The group id */
-        id: number;
-        /** The card group */
-        value: CardGroup;
-    };
-    /** The current selected card */
-    card: {
-        /** The card id */
-        id: number;
-        /** The filled card */
-        filled: ICard;
-        /** The raw card */
-        raw: ICard;
-    };
-};
-
-/** The user's selection */
-export type BareSelection = {
+export type Selection = {
     /** The type of selection */
     type: SelectionType.None;
 } | {
@@ -72,7 +36,7 @@ export type BareSelection = {
 export class GlobalState {
     /** The current selection */
     @observable @persist("object")
-    private _selection: BareSelection = { type: SelectionType.None };
+    private _selection: Selection = { type: SelectionType.None };
     /** The groups of cards */
     @observable @persist("list", CardGroup)
     private readonly _groups: CardGroup[] = [];
@@ -85,42 +49,14 @@ export class GlobalState {
         );
         // Make sure the selected card exists, if not, remove the selection
         when(
-            () => this.selection.type === SelectionType.Card && this.selection.card >= this._groups[this.selection.group].length,
+            () => this.selection.type === SelectionType.Card && this.selection.card >= this._groups[this.selection.group].cards.length,
             () => this._selection = { type: SelectionType.None }
         );
     }
 
     /** The current selection */
-    public get selection(): BareSelection {
-        if (this._selection.type === SelectionType.None) {
-            
-        } else if (this._selection.type === SelectionType.Group) {
-            return {
-                group: {
-                    id: this._selection.group,
-                    value: this._groups[this._selection.group]
-                },
-                type: SelectionType.Group
-            };
-        } else {
-            return {
-                card: {
-                    filled: this._groups[this._selection.group].getCard(this._selection.card),
-                    id: this._selection.card,
-                    raw: this._groups[this._selection.group].getRawCard(this._selection.card)
-                },
-                group: {
-                    id: this._selection.group,
-                    value: this._groups[this._selection.group]
-                },
-                type: SelectionType.Card
-            };
-        }
-    }
-
-    /** The amount of groups in the store */
-    public get groupCount() {
-        return this._groups.length;
+    public get selection(): Selection {
+        return this._selection;
     }
 
     /** Select a group and or a card */

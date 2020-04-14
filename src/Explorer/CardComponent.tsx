@@ -2,38 +2,57 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import { Observer } from "mobx-react-lite";
+import { useObserver } from "mobx-react-lite";
 import React, { useContext } from "react";
+import ICard from "../card/card";
 import { GlobalStateContext, SelectionType } from "../state";
 import { BetterMenuProvider } from "./ContextMenu";
 import { highlightMatches } from "./Explorer";
 
+/** The propt */
 interface IProps {
+    /** The card id */
     id: number;
+    /** The group id */
     groupid: number;
-    hidden: boolean;
+    /** The search term */
     search: string;
 }
 
-export default function CardComponent({ groupid, hidden, id, search }: IProps) {
+/** Filter for cards */
+export function cardFilter(filter: string) {
+    return (card: ICard) => (card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase()));
+}
+
+/** A card component in the explortr */
+export default function CardComponent({ groupid, id, search }: IProps) {
     const state = useContext(GlobalStateContext);
 
     const select = () => state.select(groupid, id);
 
-    const cardName = () => (
-        <div
-            className={`card ${state.selection.type === SelectionType.Card && state.selection.card.id === id && state.selection.group.id === groupid ? "selected" : "notselected"}`}
-            onClick={select}
-            hidden={hidden}
-        >
-            {/* Highlight any text in the card that matches the search query */}
-            {highlightMatches(state.getGroup(groupid).getCard(id).name, search)}
-        </div>
-    );
+    return useObserver(() => {
+        const card = state.groups[groupid].cards[id];
 
-    return (
-        <BetterMenuProvider id="card-contextmenu" selection={{ type: SelectionType.Card, card: id, group: groupid }}>
-            <Observer>{cardName}</Observer>
-        </BetterMenuProvider>
-    );
+        // Hide the card if there is a search term AND
+        const hidden = search !== "" && (
+            // If the group is not selected AND
+            state.selection.type !== SelectionType.Card
+            || state.selection.card !== id
+            || state.selection.group !== groupid
+            // Or if it is a match
+        ) && cardFilter(search)(card);
+
+        return (
+            <BetterMenuProvider id="card-contextmenu" selection={{ type: SelectionType.Card, card: id, group: groupid }}>
+                <div
+                    className={`card ${state.selection.type === SelectionType.Card && state.selection.card === id && state.selection.group === groupid ? "selected" : "notselected"}`}
+                    onClick={select}
+                    hidden={hidden}
+                >
+                    {/* Highlight any text in the card that matches the search query */}
+                    {highlightMatches(card.name, search)}
+                </div>
+            </BetterMenuProvider>
+        );
+    });
 }

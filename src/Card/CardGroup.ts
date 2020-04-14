@@ -28,11 +28,6 @@ export default class CardGroup {
     @observable @persist("list")
     private readonly _cards: ICard[];
 
-    /** The amount of cards in the group */
-    public get length() {
-        return this._cards.length;
-    }
-
     constructor(name = "", defaults: ICard = {}, cards: ICard[] = []) {
         this.name = name;
         this._cards = cards;

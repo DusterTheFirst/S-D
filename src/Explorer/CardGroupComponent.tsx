@@ -4,62 +4,40 @@
 
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useObserver } from "mobx-react-lite";
-import React, { useContext, useMemo, useState } from "react";
-import ICard from "../card/card";
+import { Observer, useObserver } from "mobx-react-lite";
+import React, { useContext, useState } from "react";
 import { GlobalStateContext, SelectionType } from "../state";
-import CardComponent from "./CardComponent";
+import CardComponent, { cardFilter } from "./CardComponent";
 import { BetterMenuProvider } from "./ContextMenu";
 import { highlightMatches } from "./Explorer";
 
+/** The props */
 interface IProps {
+    /** The card id */
     id: number;
+    /** The search term */
     search: string;
 }
 
+/** A component to show a card group in the side panel */
 export default function CardGroupComponent({ id, search }: IProps) {
     const [collapsed, setCollapsed] = useState(false);
     const state = useContext(GlobalStateContext);
 
-    const group = useObserver(() => state.getGroup(id));
-
-    const cardFilter = (filter: string) => {
-        return (card: ICard) => (card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase()));
-    };
-
     // Hide the group if there is a search term AND
-    const hidden = search !== "" && (
+    const hidden = useObserver(() => search !== "" && (
         // If there are no cards in the group that match the filter
-        group.getCards().filter(cardFilter(search)).length === 0
+        state.groups[id].cards.filter(cardFilter(search)).length === 0
         // AND the name of the group does not match
-        && !group.name.toLowerCase().includes(search.toLowerCase())
-    );
+        && !state.groups[id].name.toLowerCase().includes(search.toLowerCase())
+    ));
 
     const toggleCollapse = () => setCollapsed(!collapsed);
-
-    const cards = useMemo(() => group.getCards()
-        // Map the cards to elements
-        .map((card, j) => {
-            // Hide the card if there is a search term AND
-            const cardHidden = search !== "" && (
-                // If the group is not selected AND
-                state.selection.type !== SelectionType.Card
-                || state.selection.card.id !== j
-                || state.selection.group.id !== id
-            ) && (
-                    // If the group is collapsed
-                    collapsed
-                    // Or if it is a match
-                    || cardFilter(search)(card)
-                );
-
-            return <CardComponent key={j} id={j} groupid={id} hidden={cardHidden} search={search} />;
-        }), [collapsed, group, id, search, state]);
 
     return useObserver(() => (
         <BetterMenuProvider id="group-contextmenu" selection={{ type: SelectionType.Group, group: id }}>
             <div
-                className={`group ${state.selection.type === SelectionType.Group && state.selection.group.id === id ? "selected" : "notselected"}`}
+                className={`group ${state.selection.type === SelectionType.Group && state.selection.group === id ? "selected" : "notselected"}`}
                 hidden={hidden}
             >
                 <div className="title" onClick={toggleCollapse}>
@@ -68,11 +46,11 @@ export default function CardGroupComponent({ id, search }: IProps) {
                     </div>
                     <div className="name">
                         {/* Highlight any text in the name that matches the search query */}
-                        {highlightMatches(group.name, search)}
+                        <Observer>{() => <>{highlightMatches(state.groups[id].name, search)}</>}</Observer>
                     </div>
                 </div>
-                <div className="cards">
-                    {cards}
+                <div className="cards" hidden={collapsed}>
+                    <Observer>{() => <>{state.groups[id].cards.map((_, j) => <CardComponent key={j} id={j} groupid={id} search={search} />)}</>}</Observer>
                 </div>
             </div>
         </BetterMenuProvider>

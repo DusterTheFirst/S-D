@@ -4,12 +4,16 @@
 
 import { autorun } from "mobx";
 import { create } from "mobx-persist";
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./App.scss";
+import { renderCard } from "./card/cardRenderer";
+import { CardFront } from "./card/RenderedCard";
 import "./ContextMenu.scss";
 import Editor from "./editor/Editor";
+import { ExplorerContextMenus } from "./explorer/ContextMenu";
 import Explorer from "./explorer/Explorer";
-import { GlobalStateContext, SelectionType } from "./state";
+import DeleteModal from "./explorer/Modal";
+import { GlobalStateContext, Selection, SelectionType } from "./state";
 
 /**
  * TODO:
@@ -23,7 +27,7 @@ import { GlobalStateContext, SelectionType } from "./state";
 // TODO: warn about unsaved before unload
 /** The main app component */
 export default function App() {
-    const globalState = useContext(GlobalStateContext);
+    const state = useContext(GlobalStateContext);
 
     // MobX setup
     useEffect(() => {
@@ -33,23 +37,27 @@ export default function App() {
             storage: localStorage
         });
 
-        hydrate("state", globalState);
+        hydrate("state", state);
 
         // Card renderer
         return autorun(() => {
-            if (globalState.selection.type === SelectionType.Card) {
-                // renderCard(globalState.selection.card.filled).catch((e) => console.error(e));
-            } else if (globalState.selection.type === SelectionType.Group) {
-                // renderCard(globalState.selection.group.value.defaults).catch((e) => console.error(e));
+            if (state.selection.type === SelectionType.Card) {
+                renderCard(state.groups[state.selection.group].cards[state.selection.card]).catch((e) => console.error(e));
+            } else if (state.selection.type === SelectionType.Group) {
+                renderCard(state.groups[state.selection.group].defaults).catch((e) => console.error(e));
             }
         }, { delay: 15 });
         // eslint-disable-next-line
     }, []);
 
+    const [deleteSelection, setDeleteSelection] = useState<Selection>({ type: SelectionType.None });
+
     return (
         <div className="app">
             <div className="workspace">
                 <Explorer />
+                <ExplorerContextMenus setDeleteSelection={setDeleteSelection} />
+                <DeleteModal setDeleteSelection={setDeleteSelection} deleteSelection={deleteSelection} />
             </div>
             <div className="settings">
                 <Editor />
@@ -57,6 +65,7 @@ export default function App() {
             <div className="renders">
                 {/* Create the svg with react, not the extra lib */}
                 <svg className="frontview view" id="cardfrontcanvas" />
+                <CardFront />
                 <svg className="backview view" id="cardbackcanvas" />
             </div>
         </div>

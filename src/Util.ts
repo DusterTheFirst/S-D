@@ -81,7 +81,7 @@ export function load(file: DownloadFile, state: GlobalState) {
         state.select(id);
     } else {
         if (state.selection.type === SelectionType.Card || state.selection.type === SelectionType.Group) {
-            const id = state.selection.group.value.addCard(file.data);
+            const id = state.groups[state.selection.group].addCard(file.data);
             state.select(id);
         } else {
             alert("Attempted to add a card when no group is selected")
