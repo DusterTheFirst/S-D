@@ -6,7 +6,6 @@ import { autorun } from "mobx";
 import { create } from "mobx-persist";
 import React, { useContext, useEffect } from "react";
 import "./App.scss";
-import { renderCard } from "./card/cardRenderer";
 import "./ContextMenu.scss";
 import Editor from "./editor/Editor";
 import Explorer from "./explorer/Explorer";
@@ -39,9 +38,9 @@ export default function App() {
         // Card renderer
         return autorun(() => {
             if (globalState.selection.type === SelectionType.Card) {
-                renderCard(globalState.selection.card.filled).catch((e) => console.error(e));
+                // renderCard(globalState.selection.card.filled).catch((e) => console.error(e));
             } else if (globalState.selection.type === SelectionType.Group) {
-                renderCard(globalState.selection.group.value.defaults).catch((e) => console.error(e));
+                // renderCard(globalState.selection.group.value.defaults).catch((e) => console.error(e));
             }
         }, { delay: 15 });
         // eslint-disable-next-line

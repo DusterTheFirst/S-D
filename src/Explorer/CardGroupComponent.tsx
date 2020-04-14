@@ -5,23 +5,23 @@
 import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useObserver } from "mobx-react-lite";
-import React, { useContext, useState } from "react";
-import { MenuProvider } from "react-contexify";
+import React, { useContext, useMemo, useState } from "react";
 import ICard from "../card/card";
-import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, SelectionType } from "../state";
 import CardComponent from "./CardComponent";
+import { BetterMenuProvider } from "./ContextMenu";
 import { highlightMatches } from "./Explorer";
 
 interface IProps {
-    group: CardGroup;
     id: number;
     search: string;
 }
 
-export default function CardGroupComponent({ group, id, search }: IProps) {
+export default function CardGroupComponent({ id, search }: IProps) {
     const [collapsed, setCollapsed] = useState(false);
     const state = useContext(GlobalStateContext);
+
+    const group = useObserver(() => state.getGroup(id));
 
     const cardFilter = (filter: string) => {
         return (card: ICard) => (card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase()));
@@ -37,7 +37,7 @@ export default function CardGroupComponent({ group, id, search }: IProps) {
 
     const toggleCollapse = () => setCollapsed(!collapsed);
 
-    const cards = group.getCards()
+    const cards = useMemo(() => group.getCards()
         // Map the cards to elements
         .map((card, j) => {
             // Hide the card if there is a search term AND
@@ -53,11 +53,11 @@ export default function CardGroupComponent({ group, id, search }: IProps) {
                     || cardFilter(search)(card)
                 );
 
-            return <CardComponent key={j} card={card} id={j} groupid={id} hidden={cardHidden} search={search} />;
-        });
+            return <CardComponent key={j} id={j} groupid={id} hidden={cardHidden} search={search} />;
+        }), [collapsed, group, id, search, state]);
 
     return useObserver(() => (
-        <MenuProvider id="group-contextmenu" data={{ type: SelectionType.Group, group: id }}>
+        <BetterMenuProvider id="group-contextmenu" selection={{ type: SelectionType.Group, group: id }}>
             <div
                 className={`group ${state.selection.type === SelectionType.Group && state.selection.group.id === id ? "selected" : "notselected"}`}
                 hidden={hidden}
@@ -75,6 +75,6 @@ export default function CardGroupComponent({ group, id, search }: IProps) {
                     {cards}
                 </div>
             </div>
-        </MenuProvider>
+        </BetterMenuProvider>
     ));
 }

@@ -2,11 +2,11 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import { observable, when } from "mobx";
+import { observable, when, action } from "mobx";
 import { persist } from "mobx-persist";
 import { createContext } from "react";
 import ICard from "./card/card";
-import CardGroup from "./card/cardGroup";
+import CardGroup, { ICardGroupData } from "./card/cardGroup";
 
 /** The tag for the selection enum */
 export enum SelectionType {
@@ -80,20 +80,20 @@ export class GlobalState {
     constructor() {
         // Make sure the selected group exists, if not, remove the selection
         when(
-            () => (this.selection.type === SelectionType.Group || this.selection.type === SelectionType.Card) && this.selection.group.id >= this.groups.length,
+            () => (this.selection.type === SelectionType.Group || this.selection.type === SelectionType.Card) && this.selection.group >= this._groups.length,
             () => this._selection = { type: SelectionType.None }
         );
         // Make sure the selected card exists, if not, remove the selection
         when(
-            () => this.selection.type === SelectionType.Card && this.selection.card.id >= this.groups[this.selection.group.id].length,
+            () => this.selection.type === SelectionType.Card && this.selection.card >= this._groups[this.selection.group].length,
             () => this._selection = { type: SelectionType.None }
         );
     }
 
     /** The current selection */
-    public get selection(): UserSelection {
+    public get selection(): BareSelection {
         if (this._selection.type === SelectionType.None) {
-            return this._selection;
+            
         } else if (this._selection.type === SelectionType.Group) {
             return {
                 group: {
@@ -105,9 +105,9 @@ export class GlobalState {
         } else {
             return {
                 card: {
-                    filled: this._groups[this._selection.group].getCard(this._selection.group),
-                    id: this._selection.group,
-                    raw: this._groups[this._selection.group].getRawCard(this._selection.group)
+                    filled: this._groups[this._selection.group].getCard(this._selection.card),
+                    id: this._selection.card,
+                    raw: this._groups[this._selection.group].getRawCard(this._selection.card)
                 },
                 group: {
                     id: this._selection.group,
@@ -118,12 +118,13 @@ export class GlobalState {
         }
     }
 
-    /** The groups of cards */
-    public get groups() {
-        return this._groups;
+    /** The amount of groups in the store */
+    public get groupCount() {
+        return this._groups.length;
     }
 
     /** Select a group and or a card */
+    @action
     public select(group?: number, card?: number) {
         if (group === undefined) {
             this._selection = { type: SelectionType.None };
@@ -141,50 +142,34 @@ export class GlobalState {
         }
     }
 
-    /** Add a card to a group */
-    public addCard(group: number, card: ICard = {}) {
-        return this.groups[group].addCard(card);
-    }
     /** Add a group */
+    @action
     public addGroup(group: CardGroup) {
         return this._groups.push(group) - 1;
     }
 
-    /** Remove a card from a group */
-    public removeCard(group: number, card: number) {
-        this._groups[group].removeCard(card);
-    }
     /** Remove a group */
+    @action
     public removeGroup(group: number) {
         return this._groups.splice(group, 1)[0];
     }
 
-    /** Move a card in its group */
-    public moveCard(group: number, oldpos: number, newpos: number) {
-        this._groups[group].moveCard(oldpos, newpos);
-    }
-    // TODO:
-    // public switchGroup(oldgroup: number, card: number, newgroup: number): void;
-
-    /** Change the contents of a card to the new given information */
-    public editCard<K extends keyof ICard>(group: number, card: number, key: K, value: ICard[K]) {
-        this._groups[group].editCard(card, key, value);
-    }
-    /** Change the defaults of a group to the new given information */
-    public editGroupDefaults<K extends keyof ICard>(group: number, key: K, value: ICard[K]) {
-        this._groups[group].editDefaults(key, value);
-    }
-    /** Change the name of a group to the new given information */
-    public editGroupName(group: number, name: string) {
-        this._groups[group].editName(name);
+    /** Get a group */
+    public get groups() {
+        return this._groups;
     }
 
-    // TODO: remove?
-    // public setCardChanges(group: number, card: number, changes?: ICard): void;
-    // public setGroupChanges(group: number, changes?: IGroupChanges): void;
+    /** Get a group */
+    public get groupsData(): ICardGroupData[] {
+        return this._groups.map(x => x.data);
+    }
 
-    // public getCardChanges(group: number, card: number): ICard | undefined;
-    // public getGroupChanges(group: number): IGroupChanges | undefined;
+    /** Move a group */
+    @action
+    public moveGroup(oldpos: number, newpos: number) {
+        const [group] = this._groups.splice(oldpos, 1);
+        this._groups.splice(newpos, 0, group);
+    }
 }
 
 /** The global state context */
