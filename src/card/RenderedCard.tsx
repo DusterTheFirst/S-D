@@ -86,58 +86,60 @@ export function CardFront() {
     ]);
 
     return useObserver(() => {
-        const durationConc = card.duration?.toLowerCase().match(/^concentration(,)? /) !== null;
+        const durationConc = card.duration !== undefined && card.duration.toLowerCase().match(/^concentration(,)? /) !== null;
         const duration = durationConc ? card.duration?.replace(/^concentration(,)? /i, "") : card.duration;
         const durationCap = `${duration?.charAt(0).toUpperCase() ?? ""}${duration?.slice(1) ?? ""}`;
 
         const cardlevel = parseInt(card.level !== undefined ? card.level : "0", 10);
         const cardType = !isNaN(cardlevel) ? cardlevel === 0 ? `${card.type} cantrip` : `${ordinalSuffixOf(cardlevel)} level ${card.type}` : undefined;
 
+        const color = card.color ?? "#000000";
+
         return (
             <svg className="frontview view" width="50" height="70" viewBox="0 0 50 70" fontFamily="Modesto">
                 {/* Frame */}
-                <rect width="50" height="70" fill={card.color} />
+                <rect width="50" height="70" fill={color} />
                 {/* Background */}
                 <rect width="46" height="64" x="2" y="2" rx="2" ry="2" fill="white" />
 
                 {/* Sections */}
-                <line x1="0" y1="9" x2="50" y2="9" stroke={card.color} strokeWidth=".3" />
-                <line x1="0" y1="16" x2="50" y2="16" stroke={card.color} strokeWidth=".3" />
-                <line x1="0" y1="23" x2="50" y2="23" stroke={card.color} strokeWidth=".3" />
-                <line x1="25" y1="9" x2="25" y2="23" stroke={card.color} strokeWidth=".3" />
+                <line x1="0" y1="9" x2="50" y2="9" stroke={color} strokeWidth=".3" />
+                <line x1="0" y1="16" x2="50" y2="16" stroke={color} strokeWidth=".3" />
+                <line x1="0" y1="23" x2="50" y2="23" stroke={color} strokeWidth=".3" />
+                <line x1="25" y1="9" x2="25" y2="23" stroke={color} strokeWidth=".3" />
 
                 {/* Title */}
                 <text fontFamily="ModestoW01-Expd" textAnchor="middle" fontSize="4" x="25" y="6.75">{card.name}</text>
 
                 {/* Casting Time */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={card.color} x="13.5" y="12" textAnchor="middle">CASTING TIME</text>
+                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="13.5" y="12" textAnchor="middle">CASTING TIME</text>
                 <text fontSize="2" x="13.5" y="14.6" textAnchor="middle">{card.castingTime}</text>
 
                 {/* Range */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={card.color} x="36.5" y="12" textAnchor="middle">RANGE</text>
+                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="36.5" y="12" textAnchor="middle">RANGE</text>
                 <text fontSize="2" x="36.5" y="14.6" textAnchor="middle">{card.range}</text>
 
                 {/* Components */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={card.color} x="13.5" y="19" textAnchor="middle">COMPONENTS</text>
+                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="13.5" y="19" textAnchor="middle">COMPONENTS</text>
                 <text fontSize="2" x="13.5" y="21.6" textAnchor="middle">{card.components}</text>
 
                 {/* Duration */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={card.color} x="36.5" y="19" textAnchor="middle">DURATION</text>
+                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="36.5" y="19" textAnchor="middle">DURATION</text>
                 <text fontSize="2" x="36.5" y="21.6" textAnchor="middle">{durationCap}</text>
                 {/* Duration Concentration */}
                 <g display={durationConc ? undefined : "none"}>
-                    <polygon points="46,17 44,19.5 46,22 48,19.5 46,17" fill={card.color} />
+                    <polygon points="46,17 44,19.5 46,22 48,19.5 46,17" fill={color} />
                     <text fontFamily="ModestoW01-Expd" fontSize="2" x="46" y="19.5" dominantBaseline="middle" textAnchor="middle" fill="#ffffff">C</text>
                 </g>
 
                 {/* Physical Components */}
-                <rect width="50" height="3.5" y="23" fill={card.color} ref={physComponentsBakgroundRef} />
+                <rect width="50" height="3.5" y="23" fill={color} ref={physComponentsBakgroundRef} />
                 <text fontSize="2" x="3" y="25.6" ref={physComponentsRef} fill="#ffffff" />
                 {/* Description */}
                 <text fontSize="2" x="3" y="25.5" ref={descriptionRef} />
                 {/* Extended Description */}
                 <g ref={extDescriptionTitleRef}>
-                    <rect width="50" height="3.5" y="-3" fill={card.color} />
+                    <rect width="50" height="3.5" y="-3" fill={color} />
                     <text fontWeight="bold" letterSpacing=".1" y="-.4" fontSize="2" x="25" textAnchor="middle" fill="#ffffff">At Higher Levels</text>
                 </g>
                 <text fontSize="2" x="3" ref={extDescriptionRef} />
@@ -158,29 +160,33 @@ function CardBackDyn() {
     const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
     const hash = useMemo(() => hashCode(card.image ?? ""), [card.image]);
 
-    return useObserver(() => (
-        <>
-            {/* Frame */}
-            <rect width="50" height="70" fill={card.color} />
+    return useObserver(() => {
+        const color = card.color ?? "#000000";
 
-            {/* Background */}
-            <rect width="46" height="66" x="2" y="2" rx="2" ry="2" fill="white" />
+        return (
+            <>
+                {/* Frame */}
+                <rect width="50" height="70" fill={color} />
 
-            {/* Rounded line */}
-            <rect width="40" height="60" x="5" y="5" rx="2" ry="2" stroke={card.color} strokeWidth="0.5" fill="transparent" />
+                {/* Background */}
+                <rect width="46" height="66" x="2" y="2" rx="2" ry="2" fill="white" />
 
-            {/* Rhombus */}
-            <polyline points="5.25,35 25,5.25 45,34.75 25,64.75 5.25,35" fill="transparent" stroke={card.color} strokeWidth=".5" />
+                {/* Rounded line */}
+                <rect width="40" height="60" x="5" y="5" rx="2" ry="2" stroke={color} strokeWidth="0.5" fill="transparent" />
 
-            {/* Card level top right */}
-            <text fontSize="10" fontWeight="bold" fill={card.color} x="38" y="15" textAnchor="middle">{card.level}</text>
-            {/* Card level bottom left */}
-            <text fontSize="10" fontWeight="bold" fill={card.color} x="12" y="62" textAnchor="middle">{card.level}</text>
+                {/* Rhombus */}
+                <polyline points="5.25,35 25,5.25 45,34.75 25,64.75 5.25,35" fill="transparent" stroke={color} strokeWidth=".5" />
 
-            {/* Card image */}
-            <use href={`#${hash}`} />
-        </>
-    ));
+                {/* Card level top right */}
+                <text fontSize="10" fontWeight="bold" fill={color} x="38" y="15" textAnchor="middle">{card.level}</text>
+                {/* Card level bottom left */}
+                <text fontSize="10" fontWeight="bold" fill={color} x="12" y="62" textAnchor="middle">{card.level}</text>
+
+                {/* Card image */}
+                <use href={`#${hash}`} />
+            </>
+        );
+    });
 }
 
 /** The back face of the card */
