@@ -3,9 +3,9 @@
  */
 
 import { useObserver } from "mobx-react-lite";
-import React, { createRef, useContext, useEffect } from "react";
+import React, { createRef, useContext, useEffect, useMemo } from "react";
 import { GlobalStateContext, SelectionType } from "../state";
-import { bulletLists, ordinalSuffixOf } from "../util/string";
+import { bulletLists, hashCode, ordinalSuffixOf } from "../util/string";
 import { wordWrapSVG } from "../util/wordWrap";
 
 /** The front face of the card */
@@ -151,24 +151,66 @@ export function CardFront() {
     });
 }
 
+/** The more dynamic part of the card back */
+function CardBackDyn() {
+    const state = useContext(GlobalStateContext);
+
+    const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
+    const hash = useMemo(() => hashCode(card.image ?? ""), [card.image]);
+
+    return useObserver(() => (
+        <>
+            {/* Frame */}
+            <rect width="50" height="70" fill={card.color} />
+
+            {/* Background */}
+            <rect width="46" height="66" x="2" y="2" rx="2" ry="2" fill="white" />
+
+            {/* Rounded line */}
+            <rect width="40" height="60" x="5" y="5" rx="2" ry="2" stroke={card.color} strokeWidth="0.5" fill="transparent" />
+
+            {/* Rhombus */}
+            <polyline points="5.25,35 25,5.25 45,34.75 25,64.75 5.25,35" fill="transparent" stroke={card.color} strokeWidth=".5" />
+
+            {/* Card level top right */}
+            <text fontSize="10" fontWeight="bold" fill={card.color} x="38" y="15" textAnchor="middle">{card.level}</text>
+            {/* Card level bottom left */}
+            <text fontSize="10" fontWeight="bold" fill={card.color} x="12" y="62" textAnchor="middle">{card.level}</text>
+
+            {/* Card image */}
+            <use href={`#${hash}`} />
+        </>
+    ));
+}
+
 /** The back face of the card */
 export function CardBack() {
     const state = useContext(GlobalStateContext);
 
-    const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
+    return useObserver(() => {
+        console.log("compute");
+        const outImages: { [x: string]: string | undefined } = {};
 
-    return useObserver(() => (
-        <svg className="backview view" width="50" height="70" viewBox="0 0 50 70" fontFamily="Modesto">
-            <rect width="50" height="70" fill={card.color} />
-            <rect width="46" height="66" x="2" y="2" rx="2" ry="2" fill="white" />
-            <rect width="40" height="60" x="5" y="5" rx="2" ry="2" stroke={card.color} strokeWidth="0.5" fill="transparent" />
-            <line x1="5" y1="35" x2="25" y2="5" stroke={card.color} strokeWidth="0.5" />
-            <line x1="45" y1="35" x2="25" y2="5" stroke={card.color} strokeWidth="0.5" />
-            <line x1="5" y1="35" x2="25" y2="65" stroke={card.color} strokeWidth="0.5" />
-            <line x1="45" y1="35" x2="25" y2="65" stroke={card.color} strokeWidth="0.5" />
-            <text fontSize="10" fontWeight="bold" fill={card.color} x="37.5" y="15" textAnchor="middle">{card.level}</text>
-            <text fontSize="10" fontWeight="bold" fill={card.color} x="12.5" y="62" textAnchor="middle">{card.level}</text>
-            <image xlinkHref={card.image} width="25" height="25" x="12.5" y="22.5" />
-        </svg>
-    ));
+        for (const g of state.groups) {
+            for (const c of g.cards) {
+                if (c.image !== undefined) {
+                    const hashed = hashCode(c.image);
+                    if (outImages[hashed] === undefined) {
+                        outImages[hashed] = c.image;
+                    }
+                }
+            }
+        }
+
+        return (
+            <svg className="backview view" width="50" height="70" viewBox="0 0 50 70" fontFamily="Modesto">
+                {/* Cache images on screen for faster switch */}
+                <defs>
+                    {Object.entries(outImages).map(([h, image]) => <image key={h} id={h} href={image} width="25" height="25" x="12.5" y="22.5" />)}
+                </defs>
+
+                <CardBackDyn />
+            </svg>
+        );
+    });
 }

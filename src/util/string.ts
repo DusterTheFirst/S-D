@@ -23,3 +23,16 @@ export function ordinalSuffixOf(i: number) {
 export function bulletLists(text: string): string {
     return text.replace(/^(\*|-)(?= )/img, "\u2022");
 }
+
+/** Hash a string */
+export function hashCode(s: string) {
+    let hash = 0;
+    let chr;
+    for (let i = 0; i < s.length; i++) {
+        chr = s.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr; // tslint:disable-line no-bitwise
+        hash |= 0; // tslint:disable-line no-bitwise // Convert to 32bit integer
+    }
+
+    return hash;
+}
