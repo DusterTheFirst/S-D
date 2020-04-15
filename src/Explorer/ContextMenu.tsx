@@ -8,7 +8,7 @@ import React, { MouseEvent, PropsWithChildren, useContext } from "react";
 import { contextMenu, Item, Menu, Separator } from "react-contexify";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
-import { download } from "../util";
+import { download } from "../util/file";
 import { IItemArgs, ItemHandler } from "./Explorer";
 
 /** Props to the better menu provider component */

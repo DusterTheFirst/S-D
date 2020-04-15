@@ -5,7 +5,7 @@
 ![GitHub issues](https://img.shields.io/github/issues/dusterthefirst/sd)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/dusterthefirst/sd)
 
-A tool to create your own D&D style spell cards for use in tabletop games
+A WYSIWYG tool to create your own D&D style spell cards for use in tabletop games
 
 ## License
     A tool to create your own D&D style spell cards for use in tabletop games

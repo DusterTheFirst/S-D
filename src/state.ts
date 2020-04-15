@@ -2,7 +2,7 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import { action, observable, when } from "mobx";
+import { action, observable } from "mobx";
 import { persist } from "mobx-persist";
 import { createContext } from "react";
 import CardGroup, { ICardGroupData } from "./card/cardGroup";
@@ -40,19 +40,6 @@ export class GlobalState {
     /** The groups of cards */
     @observable @persist("list", CardGroup)
     private readonly _groups: CardGroup[] = [];
-
-    constructor() {
-        // Make sure the selected group exists, if not, remove the selection
-        when(
-            () => (this.selection.type === SelectionType.Group || this.selection.type === SelectionType.Card) && this.selection.group >= this._groups.length,
-            () => this._selection = { type: SelectionType.None }
-        );
-        // Make sure the selected card exists, if not, remove the selection
-        when(
-            () => this.selection.type === SelectionType.Card && this.selection.card >= this._groups[this.selection.group].cards.length,
-            () => this._selection = { type: SelectionType.None }
-        );
-    }
 
     /** The current selection */
     public get selection(): Selection {

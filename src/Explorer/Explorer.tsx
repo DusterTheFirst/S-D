@@ -9,7 +9,7 @@ import React, { ChangeEvent, DragEvent, UIEvent, useContext, useState } from "re
 import { MenuItemEventHandler, TriggerEvent } from "react-contexify/lib/types";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
-import { DownloadFile, load, textFileReaderAsync } from "../util";
+import { DownloadFile, load, textFileReaderAsync } from "../util/file";
 import CardGroupComponent from "./CardGroupComponent";
 import { BetterMenuProvider } from "./ContextMenu";
 import "./Explorer.scss";

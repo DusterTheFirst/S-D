@@ -15,7 +15,13 @@ interface IDeleteModalProps {
     setDeleteSelection(selection: Selection): void;
 }
 
-export const ModalStyles: { content: React.CSSProperties; overlay: React.CSSProperties } = {
+/** The styles for the modal */
+const ModalStyles: {
+    /** The content props */
+    content: React.CSSProperties;
+    /** The overlay props */
+    overlay: React.CSSProperties;
+} = {
     content: {
         background: "#1a1a1a",
         border: "solid 1px #666666",
@@ -42,8 +48,10 @@ export default function DeleteModal({ deleteSelection, setDeleteSelection }: IDe
 
     const deleteCard = () => {
         if (deleteSelection.type === SelectionType.Group) {
+            state.select();
             state.removeGroup(deleteSelection.group);
         } else if (deleteSelection.type === SelectionType.Card) {
+            state.select(deleteSelection.group);
             state.groups[deleteSelection.group].removeCard(deleteSelection.card);
         } else {
             console.warn("Attempted to delete card when no card selected for deletion");

@@ -102,7 +102,8 @@
             true,
             "dev"
         ],
-        "no-import-side-effect": true,
+        // FIXME:
+        "no-import-side-effect": false,
         "no-inferrable-types": true,
         "no-inferred-empty-object-type": true,
         "no-internal-module": true,

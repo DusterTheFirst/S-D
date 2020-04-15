@@ -2,10 +2,11 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import ICard from "./card/card";
-import CardGroup, { ICardGroupData } from "./card/cardGroup";
-import { GlobalState, SelectionType } from "./state";
+import ICard from "../card/card";
+import CardGroup, { ICardGroupData } from "../card/cardGroup";
+import { GlobalState, SelectionType } from "../state";
 
+/** Helper to create a file reader that is async and reads text */
 export async function textFileReaderAsync(file: Blob) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -21,6 +22,7 @@ export async function textFileReaderAsync(file: Blob) {
     });
 }
 
+/** Helper that can create a file reaer that is async and reads data */
 export async function dataFileReaderAsync(file: Blob) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -84,7 +86,7 @@ export function load(file: DownloadFile, state: GlobalState) {
             const id = state.groups[state.selection.group].addCard(file.data);
             state.select(id);
         } else {
-            alert("Attempted to add a card when no group is selected")
+            alert("Attempted to add a card when no group is selected");
         }
     }
 }

@@ -6,7 +6,7 @@ import { useObserver } from "mobx-react-lite";
 import React, { createRef, useContext } from "react";
 import ICard from "../card/card";
 import { GlobalStateContext, SelectionType } from "../state";
-import { dataFileReaderAsync } from "../util";
+import { dataFileReaderAsync } from "../util/file";
 import "./Editor.scss";
 
 /** The editor component */
@@ -56,8 +56,6 @@ function GroupSettings() {
         );
     });
 }
-
-
 
 /** The CardSettings section */
 function CardSettings() {
@@ -144,7 +142,7 @@ function CardSettings() {
                     </label>
                     <label>
                         Level:
-                        <input type="number" value={cardSettings.level ?? ""} onChange={cardValueUpdater("level")} placeholder={placeholders?.level === undefined ? undefined : placeholders?.level?.toString()} />
+                        <input type="number" min={0} max={99} value={cardSettings.level ?? ""} onChange={cardValueUpdater("level")} placeholder={placeholders?.level === undefined ? undefined : placeholders?.level?.toString()} />
                     </label>
                     <label>
                         Color:
