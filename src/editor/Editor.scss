@@ -1,3 +1,14 @@
+.empty {
+    position: absolute;
+
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    color: white;
+}
+
 .editor {
     background: #313131;
     color: #cccccc;
