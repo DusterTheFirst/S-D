@@ -26,6 +26,8 @@ jobs:
         run: yarn build
       - name: CNAME
         run: echo sd.dusterthefirst.com > build/CNAME
+      - name: HASH
+        run: find build -type f -print0 | sort -z | xargs -0 sha1sum | sha1sum > build/HASH.md5
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@releases/v3
         with:

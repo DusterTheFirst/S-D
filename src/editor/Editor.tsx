@@ -7,6 +7,7 @@ import React, { createRef, useContext } from "react";
 import ICard from "../card/card";
 import { GlobalStateContext, SelectionType } from "../state";
 import { dataFileReaderAsync } from "../util/file";
+import AutoResizeTextArea from "./AutoResizeTextArea";
 import "./Editor.scss";
 
 /** The editor component */
@@ -122,15 +123,15 @@ function CardSettings() {
                     </label>
                     <label>
                         Physical Components:
-                        <textarea value={cardSettings.physicalComponents ?? ""} onChange={cardValueUpdater("physicalComponents")} placeholder={placeholders?.physicalComponents} />
+                        <AutoResizeTextArea value={cardSettings.physicalComponents ?? ""} onChange={cardValueUpdater("physicalComponents")} placeholder={placeholders?.physicalComponents} />
                     </label>
                     <label>
                         Description:
-                        <textarea value={cardSettings.description ?? ""} onChange={cardValueUpdater("description")} placeholder={placeholders?.description} />
+                        <AutoResizeTextArea value={cardSettings.description ?? ""} onChange={cardValueUpdater("description")} placeholder={placeholders?.description} />
                     </label>
                     <label>
                         Extended Description:
-                        <textarea value={cardSettings.extDescription ?? ""} onChange={cardValueUpdater("extDescription")} placeholder={placeholders?.extDescription} />
+                        <AutoResizeTextArea value={cardSettings.extDescription ?? ""} onChange={cardValueUpdater("extDescription")} placeholder={placeholders?.extDescription} />
                     </label>
                     <label>
                         Class:

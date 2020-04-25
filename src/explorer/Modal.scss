@@ -1,0 +1,73 @@
+.modal {
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: auto 40px 30px;
+    height: 100%;
+
+    grid-column-gap: 10px;
+    
+    color: #cccccc;
+    font-size: 20px;
+
+    .dialog {
+        grid-row: 1;
+        margin-left: 10px;
+        .info {
+            .type {
+                font-weight: bold;
+            }
+            .name {
+                font-weight: bolder;
+                font-style: italic;
+            }
+        }
+    }
+    .warn {
+        grid-row: 2;
+
+        margin-left: 10px;
+        font-weight: bold;
+        .irreversible {
+            color: #f04747;
+        }
+    }
+    .buttons {
+        grid-row: 3;
+        text-align: center;
+        button {
+            background: #313131;
+            border: none;
+            color: #cccccc;
+    
+            padding: 5px 10px;
+            border-radius: 5px;
+    
+            margin: 0px 10px;
+
+            &.delete {
+                color: #f04747;
+                font-weight: bold;
+
+                &:hover {
+                    background: #f04747;
+                    color: #FFFFFF;
+                }
+            }
+
+            &.good {
+                color: #17831d;
+                font-weight: bold;
+
+                &:hover {
+                    background: #17831d;
+                    color: #FFFFFF;
+                }
+            }
+
+            &:hover {
+                background: #515151;
+            }
+        }
+    }
+    
+}

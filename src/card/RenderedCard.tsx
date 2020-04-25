@@ -194,7 +194,6 @@ export function CardBack() {
     const state = useContext(GlobalStateContext);
 
     return useObserver(() => {
-        console.log("compute");
         const outImages: { [x: string]: string | undefined } = {};
 
         for (const g of state.groups) {

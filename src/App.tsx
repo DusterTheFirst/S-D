@@ -12,6 +12,8 @@ import { ExplorerContextMenus } from "./explorer/ContextMenu";
 import Explorer from "./explorer/Explorer";
 import DeleteModal from "./explorer/Modal";
 import { GlobalStateContext, Selection, SelectionType } from "./state";
+import UpdateModal from "./UpdateModal";
+import useUpdate from "./util/useUpdate";
 
 /**
  * TODO:
@@ -21,10 +23,11 @@ import { GlobalStateContext, Selection, SelectionType } from "./state";
  * - Printing (double sided)
  */
 
-// TODO: warn about unsaved before unload
 /** The main app component */
 export default function App() {
     const state = useContext(GlobalStateContext);
+    const [updateHash, setUpdateHash] = useState<string>();
+    const actOnUpdate = useUpdate(setUpdateHash);
 
     // MobX setup
     useEffect(() => {
@@ -55,6 +58,7 @@ export default function App() {
                 <CardFront />
                 <CardBack />
             </div>
+            <UpdateModal action={actOnUpdate} hash={updateHash} />
         </div>
     );
 }

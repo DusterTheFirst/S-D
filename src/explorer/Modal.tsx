@@ -6,6 +6,7 @@ import { Observer } from "mobx-react-lite";
 import React, { useContext } from "react";
 import ReactModal from "react-modal";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
+import "./Modal.scss";
 
 /** The props for the delete modal */
 interface IDeleteModalProps {
@@ -16,7 +17,7 @@ interface IDeleteModalProps {
 }
 
 /** The styles for the modal */
-const ModalStyles: {
+export const ModalStyles: {
     /** The content props */
     content: React.CSSProperties;
     /** The overlay props */
@@ -80,13 +81,13 @@ export default function DeleteModal({ deleteSelection, setDeleteSelection }: IDe
             <div className="modal">
                 <div className="dialog">
                     <Observer>{confirmationMessage}</Observer>
-                    <div className="warn">
-                        This action is <span className="irreversible">irreversible</span>
-                    </div>
-                    <div className="buttons">
-                        <button onClick={closeDeleteModal}>Cancel</button>
-                        <button className="delete" onClick={deleteCard}>Delete</button>
-                    </div>
+                </div>
+                <div className="warn">
+                    This action is <span className="irreversible">irreversible</span>
+                </div>
+                <div className="buttons">
+                    <button onClick={closeDeleteModal}>Cancel</button>
+                    <button className="delete" onClick={deleteCard}>Delete</button>
                 </div>
             </div>
         </ReactModal>
