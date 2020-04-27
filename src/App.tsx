@@ -11,9 +11,9 @@ import Editor from "./editor/Editor";
 import { ExplorerContextMenus } from "./explorer/ContextMenu";
 import Explorer from "./explorer/Explorer";
 import DeleteModal from "./explorer/Modal";
+import register from "./registerServiceWorker";
 import { GlobalStateContext, Selection, SelectionType } from "./state";
 import UpdateModal from "./UpdateModal";
-import useUpdate from "./util/useUpdate";
 
 /**
  * TODO:
@@ -26,10 +26,19 @@ import useUpdate from "./util/useUpdate";
 /** The main app component */
 export default function App() {
     const state = useContext(GlobalStateContext);
-    const [updateHash, setUpdateHash] = useState<string>();
-    const actOnUpdate = useUpdate(setUpdateHash);
+    const [updateAvaliable, setUpdateAvaliable] = useState(false);
+    const doUpdate = (update: boolean) => {
+        if (update) {
+            console.log("%cUser accepting update, reloading", "color: goldenrod");
+            location.reload(); // eslint-disable-line
+        }else {
+            console.log("%cUser ignored update", "color: goldenrod");
+        }
 
-    // MobX setup
+        // Hide prompt
+        setUpdateAvaliable(false);
+    };
+
     useEffect(() => {
         // Setup Mobx-Persist
         const hydrate = create({
@@ -38,6 +47,14 @@ export default function App() {
         });
 
         hydrate("state", state);
+
+        // Setup service worker
+        register(setUpdateAvaliable);
+
+        // Disable context menu
+        document.oncontextmenu = (e) => {
+            e.preventDefault();
+        };
         // eslint-disable-next-line
     }, []);
 
@@ -58,7 +75,7 @@ export default function App() {
                 <CardFront />
                 <CardBack />
             </div>
-            <UpdateModal action={actOnUpdate} hash={updateHash} />
+            <UpdateModal doUpdate={doUpdate} show={updateAvaliable} />
         </div>
     );
 }

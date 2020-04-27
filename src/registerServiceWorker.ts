@@ -1,4 +1,7 @@
-// tslint:disable
+/*!
+ * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
+ */
+
 // In production, we register a service worker to serve assets from local cache.
 
 // This lets the app load faster on subsequent visits in production, and gives
@@ -9,6 +12,7 @@
 // To learn more about the benefits of this model, read https://goo.gl/KwvDNy.
 // This link also includes instructions on opting out of this behavior.
 
+/** Check for localhost uri */
 const isLocalhost = Boolean(
     window.location.hostname === "localhost" ||
     // [::1] is the IPv6 localhost address.
@@ -19,7 +23,8 @@ const isLocalhost = Boolean(
     ) !== null
 );
 
-export default function register() {
+/** Method to register the service worker */
+export default function register(setUpdateAvaliable: (is: boolean) => void) {
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
         // The URL constructor is available in all browsers that support SW.
         const publicUrl = new URL(
@@ -38,7 +43,7 @@ export default function register() {
 
             if (isLocalhost) {
                 // This is running on localhost. Lets check if a service worker still exists or not.
-                checkValidServiceWorker(swUrl);
+                checkValidServiceWorker(swUrl, setUpdateAvaliable);
 
                 // Add some additional logging to localhost, pointing developers to the
                 // service worker/PWA documentation.
@@ -47,16 +52,17 @@ export default function register() {
                         "This web app is being served cache-first by a service " +
                         "worker. To learn more, visit https://goo.gl/SC7cgQ"
                     );
-                });
+                }).catch(e => console.error(e));
             } else {
                 // Is not local host. Just register service worker
-                registerValidSW(swUrl);
+                registerValidSW(swUrl, setUpdateAvaliable);
             }
         });
     }
 }
 
-function registerValidSW(swUrl: string) {
+/** Method to register a valid service worker */
+function registerValidSW(swUrl: string, setUpdateAvaliable: (is: boolean) => void) {
     navigator.serviceWorker
         .register(swUrl)
         .then(registration => {
@@ -71,6 +77,7 @@ function registerValidSW(swUrl: string) {
                                 // It's the perfect time to display a 'New content is
                                 // available; please refresh.' message in your web app.
                                 console.log("New content is available; please refresh.");
+                                setUpdateAvaliable(true);
                             } else {
                                 // At this point, everything has been precached.
                                 // It's the perfect time to display a
@@ -87,25 +94,26 @@ function registerValidSW(swUrl: string) {
         });
 }
 
-function checkValidServiceWorker(swUrl: string) {
+/** A method to make sure that the service worker exists before usig it */
+function checkValidServiceWorker(swUrl: string, setUpdateAvaliable: (is: boolean) => void) {
     // Check if the service worker can be found. If it can't reload the page.
     fetch(swUrl)
         .then(response => {
             // Ensure service worker exists, and that we really are getting a JS file.
             if (
                 response.status === 404 ||
-                response.headers.get("content-type")!.indexOf("javascript") === -1
+                response.headers.get("content-type")!.indexOf("javascript") === -1 // tslint:disable-line: no-non-null-assertion
             ) {
                 // No service worker found. Probably a different app. Reload the page.
-                navigator.serviceWorker.ready.then(registration => {
+                navigator.serviceWorker.ready.then(registration =>
                     registration.unregister()
-                    .then(() => {
-                        window.location.reload();
-                    });
-                });
+                        .then(() => {
+                            window.location.reload();
+                        })
+                ).catch(e => console.error(e));
             } else {
                 // Service worker found. Proceed as normal.
-                registerValidSW(swUrl);
+                registerValidSW(swUrl, setUpdateAvaliable);
             }
         })
         .catch(() => {
@@ -115,11 +123,11 @@ function checkValidServiceWorker(swUrl: string) {
         });
 }
 
-// ts-unused-exports:disable-next-line
-export function unregister() {
+/** Method to unregister the service worker */
+export function unregister() { // ts-unused-exports:disable-line
     if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
-            registration.unregister();
-        });
+        navigator.serviceWorker.ready.then(registration =>
+            registration.unregister()
+        ).catch(e => console.error(e));
     }
 }

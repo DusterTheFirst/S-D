@@ -6,30 +6,28 @@ import React from "react";
 import ReactModal from "react-modal";
 import { ModalStyles } from "./explorer/Modal";
 import "./explorer/Modal.scss";
-import { UpdateAction } from "./util/useUpdate";
 
 /** The props to the update modal */
 interface IUpdateModalProps {
     /** The has to act on */
-    hash?: string;
+    show: boolean;
     /** The action to call when a choice is made */
-    action(action: UpdateAction, hash: string): void;
+    doUpdate(update: boolean): void;
 }
 
 /** The delete confirmation modal */
-export default function UpdateModal({ action, hash }: IUpdateModalProps) {
-    const callAction = (actionType: UpdateAction) => () => action(actionType, hash ?? "");
+export default function UpdateModal({ doUpdate, show }: IUpdateModalProps) {
+    const callDoUpdate = (update: boolean) => () => doUpdate(update);
 
     return (
-        <ReactModal isOpen={hash !== undefined} style={ModalStyles}>
+        <ReactModal isOpen={show} style={ModalStyles}>
             <div className="modal">
                 <div className="dialog">
-                    There is a new update! Please choose an action below. Ignoring will result in another popup in 10 minutes
+                    There is a new update! You can choose to update now, or ignore the message.
                 </div>
                 <div className="buttons">
-                    <button className="good" onClick={callAction(UpdateAction.Update)}>Update</button>
-                    <button onClick={callAction(UpdateAction.Ignore)}>Ignore</button>
-                    <button className="delete" onClick={callAction(UpdateAction.Skip)}>Skip</button>
+                    <button className="good" onClick={callDoUpdate(true)}>Update</button>
+                    <button onClick={callDoUpdate(false)}>Ignore</button>
                 </div>
             </div>
         </ReactModal>

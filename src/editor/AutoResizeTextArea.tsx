@@ -19,7 +19,7 @@ const AutoResizeTextArea = memo((props: React.DetailedHTMLProps<React.TextareaHT
 
     useEffect(() => {
         resize();
-    }, []); // eslint-disable-line
+    }, [resize, props.value]);
 
     return <textarea {...props} ref={ref} onKeyUp={resize} />;
 });
