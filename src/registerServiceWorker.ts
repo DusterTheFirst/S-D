@@ -124,7 +124,8 @@ function checkValidServiceWorker(swUrl: string, setUpdateAvaliable: (is: boolean
 }
 
 /** Method to unregister the service worker */
-export function unregister() { // ts-unused-exports:disable-line
+// ts-unused-exports:disable-next-line
+export function unregister() {
     if ("serviceWorker" in navigator) {
         navigator.serviceWorker.ready.then(registration =>
             registration.unregister()
