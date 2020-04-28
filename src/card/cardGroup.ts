@@ -86,13 +86,19 @@ export default class CardGroup {
     /** Change the value of a card in the group */
     @action
     public editCard<K extends keyof ICard>(card: number, key: K, value: ICard[K]) {
-        this._cards[card] = { ...this._cards[card], [key]: value };
+        this._cards[card] = Object.entries({ ...this._cards[card], [key]: value })
+            // Remove undefined props
+            .filter(([, v]) => v !== undefined)
+            .reduce<ICard>((pre, [k, v]) => ({ ...pre, [k]: v }), {});
     }
 
     /** Change the value of the groups defaults */
     @action
     public editDefaults<K extends keyof ICard>(key: K, value: ICard[K]) {
-        this.defaults = { ...this.defaults, [key]: value };
+        this.defaults = Object.entries({ ...this.defaults, [key]: value })
+            // Remove undefined props
+            .filter(([, v]) => v !== undefined)
+            .reduce<ICard>((pre, [k, v]) => ({ ...pre, [k]: v }), {});
     }
 
     /** Change the value of the groups defaults */

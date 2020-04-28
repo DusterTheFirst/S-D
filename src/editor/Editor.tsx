@@ -80,6 +80,14 @@ function CardSettings() {
             };
         };
 
+        const clearColor = () => {
+            if (state.selection.type === SelectionType.Card) {
+                state.groups[state.selection.group].editCard(state.selection.card, "color", undefined);
+            } else if (state.selection.type === SelectionType.Group) {
+                state.groups[state.selection.group].editDefaults("color", undefined);
+            }
+        };
+
         const fileInput = async (event: React.FormEvent<HTMLInputElement>) => {
             event.persist();
 
@@ -92,6 +100,16 @@ function CardSettings() {
                     }
 
                     state.groups[state.selection.group].editCard(state.selection.card, "image", image);
+                }
+            } else if (state.selection.type === SelectionType.Group) {
+                if (imageRef.current !== null) {
+                    let image: string | undefined;
+
+                    if (imageRef.current.files !== null) {
+                        image = await dataFileReaderAsync(imageRef.current.files[0]);
+                    }
+
+                    state.groups[state.selection.group].editDefaults("image", image);
                 }
             }
         };
@@ -148,6 +166,7 @@ function CardSettings() {
                     <label>
                         Color:
                         <input type="color" value={cardSettings.color ?? ""} onChange={cardValueUpdater("color")} placeholder={placeholders?.color} />
+                        <button onClick={clearColor}>Clear Color</button>
                     </label>
                     <label>
                         Image:
