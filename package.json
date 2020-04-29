@@ -10,7 +10,6 @@
     "mobx": "^5.15.4",
     "mobx-persist": "^0.4.1",
     "mobx-react-lite": "^2.0.6",
-    "node-sass": "^4.13.1",
     "react": "^16.4.1",
     "react-contexify": "^4.1.1",
     "react-dom": "^16.4.1",
