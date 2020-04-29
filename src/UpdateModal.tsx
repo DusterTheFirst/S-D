@@ -4,8 +4,7 @@
 
 import React from "react";
 import ReactModal from "react-modal";
-import { ModalStyles } from "./explorer/Modal";
-import "./explorer/Modal.scss";
+import { ModalButton, ModalButtons, ModalContainer, ModalDialog, ModalStyles, ModalSuggestedButton } from "./styles/modal";
 
 /** The props to the update modal */
 interface IUpdateModalProps {
@@ -21,15 +20,15 @@ export default function UpdateModal({ doUpdate, show }: IUpdateModalProps) {
 
     return (
         <ReactModal isOpen={show} style={ModalStyles}>
-            <div className="modal">
-                <div className="dialog">
+            <ModalContainer>
+                <ModalDialog>
                     There is a new update! You can choose to update now, or ignore the message.
-                </div>
-                <div className="buttons">
-                    <button className="good" onClick={callDoUpdate(true)}>Update</button>
-                    <button onClick={callDoUpdate(false)}>Ignore</button>
-                </div>
-            </div>
+                </ModalDialog>
+                <ModalButtons>
+                    <ModalSuggestedButton onClick={callDoUpdate(true)}>Update</ModalSuggestedButton>
+                    <ModalButton onClick={callDoUpdate(false)}>Ignore</ModalButton>
+                </ModalButtons>
+            </ModalContainer>
         </ReactModal>
     );
 }

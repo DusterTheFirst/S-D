@@ -3,6 +3,7 @@
  */
 
 import React, { createRef, memo, useCallback, useEffect } from "react";
+import { EditorTextArea } from "../styles/editor";
 
 /** A text area that resizes when it overflows */
 const AutoResizeTextArea = memo((props: React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>) => {
@@ -19,9 +20,13 @@ const AutoResizeTextArea = memo((props: React.DetailedHTMLProps<React.TextareaHT
 
     useEffect(() => {
         resize();
+
+        window.addEventListener("resize", resize);
+
+        return () => window.removeEventListener("resize", resize);
     }, [resize, props.value]);
 
-    return <textarea {...props} ref={ref} onKeyUp={resize} />;
+    return <EditorTextArea {...props} ref={ref} onKeyUp={resize} />;
 });
 
 export default AutoResizeTextArea;

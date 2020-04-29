@@ -8,6 +8,7 @@ import React, { MouseEvent, PropsWithChildren, useContext } from "react";
 import { contextMenu, Item, Menu, Separator } from "react-contexify";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
+import { DangerItem } from "../styles/contextMenu";
 import { download } from "../util/file";
 import { IItemArgs, ItemHandler } from "./Explorer";
 
@@ -146,10 +147,16 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
             }
         }) as unknown as ItemHandler<boolean>;
 
+        const deselect = () => {
+            state.select();
+        };
+
         return (
             <>
                 <Menu id="none-contextmenu">
                     <Item onClick={addClick}>Add Group</Item>
+                    <Separator />
+                    <Item onClick={deselect}>Deselect All</Item>
                     <Separator />
                     <Item onClick={downloadClick}>Download All</Item>
                     <Item disabled={true}>Render All</Item>
@@ -167,7 +174,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item disabled={true}>Render Group</Item>
                     <Item disabled={true}>Print Group</Item>
                     <Separator />
-                    <Item className="delete" onClick={deleteClick}>Delete</Item>
+                    <DangerItem onClick={deleteClick}>Delete</DangerItem>
                 </Menu>
                 <Menu id="card-contextmenu">
                     <Item onClick={duplicateClick}>Duplicate</Item>
@@ -179,7 +186,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item disabled={true}>Render Card</Item>
                     <Item disabled={true}>Print Card</Item>
                     <Separator />
-                    <Item className="delete" onClick={deleteClick}>Delete</Item>
+                    <DangerItem onClick={deleteClick}>Delete</DangerItem>
                 </Menu>
             </>
         );

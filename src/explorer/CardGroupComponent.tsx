@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Observer, useObserver } from "mobx-react-lite";
 import React, { useContext, useState } from "react";
 import { GlobalStateContext, SelectionType } from "../state";
+import { CardGroupCaret, CardGroupName, CardGroupTitle } from "../styles/explorer/cardGroup";
 import CardComponent, { cardFilter } from "./CardComponent";
 import { BetterMenuProvider } from "./ContextMenu";
 import { highlightMatches } from "./Explorer";
@@ -30,26 +31,25 @@ export default function CardGroupComponent({ id, search }: IProps) {
         state.groups[id].cards.filter(cardFilter(search)).length === 0
         // AND the name of the group does not match
         && !state.groups[id].name.toLowerCase().includes(search.toLowerCase())
+        // AND the group is not selected OR any card in the group
+        && !((state.selection.type === SelectionType.Card || state.selection.type === SelectionType.Group) && state.selection.group === id)
     ));
 
     const toggleCollapse = () => setCollapsed(!collapsed);
 
     return useObserver(() => (
         <BetterMenuProvider id="group-contextmenu" selection={{ type: SelectionType.Group, group: id }}>
-            <div
-                className={`group ${state.selection.type === SelectionType.Group && state.selection.group === id ? "selected" : "notselected"}`}
-                hidden={hidden}
-            >
-                <div className="title" onClick={toggleCollapse}>
-                    <div className="caret">
+            <div hidden={hidden}>
+                <CardGroupTitle selected={state.selection.type === SelectionType.Group && state.selection.group === id} onClick={toggleCollapse}>
+                    <CardGroupCaret>
                         <FontAwesomeIcon icon={collapsed ? faCaretRight : faCaretDown} />
-                    </div>
-                    <div className="name">
+                    </CardGroupCaret>
+                    <CardGroupName>
                         {/* Highlight any text in the name that matches the search query */}
                         <Observer>{() => <>{highlightMatches(state.groups[id].name, search)}</>}</Observer>
-                    </div>
-                </div>
-                <div className="cards" hidden={collapsed}>
+                    </CardGroupName>
+                </CardGroupTitle>
+                <div hidden={collapsed}>
                     <Observer>{() => <>{state.groups[id].cards.map((_, j) => <CardComponent key={j} id={j} groupid={id} search={search} />)}</>}</Observer>
                 </div>
             </div>

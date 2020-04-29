@@ -4,21 +4,21 @@
 
 import { create } from "mobx-persist";
 import React, { useContext, useEffect, useState } from "react";
-import "./App.scss";
 import { CardBack, CardFront } from "./card/RenderedCard";
-import "./ContextMenu.scss";
 import Editor from "./editor/Editor";
 import { ExplorerContextMenus } from "./explorer/ContextMenu";
 import Explorer from "./explorer/Explorer";
 import DeleteModal from "./explorer/Modal";
 import register from "./registerServiceWorker";
 import { GlobalStateContext, Selection, SelectionType } from "./state";
+import { AppContainer, CardContainer } from "./styles/app";
+import { ContextMenuStyles } from "./styles/contextMenu";
+import GlobalStyles from "./styles/global";
 import UpdateModal from "./UpdateModal";
 
 /**
  * TODO:
  * - Better layout
- * - svg image
  * - Styled components?
  * - Printing (double sided)
  */
@@ -31,7 +31,7 @@ export default function App() {
         if (update) {
             console.log("%cUser accepting update, reloading", "color: goldenrod");
             location.reload(); // eslint-disable-line
-        }else {
+        } else {
             console.log("%cUser ignored update", "color: goldenrod");
         }
 
@@ -61,21 +61,27 @@ export default function App() {
     const [deleteSelection, setDeleteSelection] = useState<Selection>({ type: SelectionType.None });
 
     return (
-        <div className="app">
-            <div className="workspace">
-                <Explorer />
-                <ExplorerContextMenus setDeleteSelection={setDeleteSelection} />
-                <DeleteModal setDeleteSelection={setDeleteSelection} deleteSelection={deleteSelection} />
-            </div>
-            <div className="settings">
-                <Editor />
-            </div>
-            <div className="renders">
-                {/* Create the svg with react, not the extra lib */}
+        <AppContainer>
+            {/* Global styles */}
+            <GlobalStyles />
+            <ContextMenuStyles />
+
+            {/* The exporer view */}
+            <Explorer />
+            <ExplorerContextMenus setDeleteSelection={setDeleteSelection} />
+            <DeleteModal setDeleteSelection={setDeleteSelection} deleteSelection={deleteSelection} />
+
+            {/* The editor */}
+            <Editor />
+
+            {/* The card renders */}
+            <CardContainer>
                 <CardFront />
                 <CardBack />
-            </div>
+            </CardContainer>
+
+            {/* The update modal */}
             <UpdateModal doUpdate={doUpdate} show={updateAvaliable} />
-        </div>
+        </AppContainer>
     );
 }

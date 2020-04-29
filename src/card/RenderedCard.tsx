@@ -5,6 +5,7 @@
 import { useObserver } from "mobx-react-lite";
 import React, { createRef, useContext, useEffect, useMemo } from "react";
 import { GlobalStateContext, SelectionType } from "../state";
+import { CardText, ExpandedText, RenderedCard } from "../styles/renderedCard";
 import { bulletLists, hashCode, ordinalSuffixOf } from "../util/string";
 import { wordWrapSVG } from "../util/wordWrap";
 
@@ -22,7 +23,7 @@ export function CardFront() {
     // Card selection
     const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
 
-    // Apply word wrapping to textx
+    // Apply word wrapping to text
     useEffect(() => {
         // Collecctive hight of blocks
         let currHeight = 0;
@@ -96,7 +97,7 @@ export function CardFront() {
         const color = card.color ?? "#000000";
 
         return (
-            <svg className="frontview view" width="50" height="70" viewBox="0 0 50 70" fontFamily="Modesto">
+            <RenderedCard>
                 {/* Frame */}
                 <rect width="50" height="70" fill={color} />
                 {/* Background */}
@@ -109,46 +110,46 @@ export function CardFront() {
                 <line x1="25" y1="9" x2="25" y2="23" stroke={color} strokeWidth=".3" />
 
                 {/* Title */}
-                <text fontFamily="ModestoW01-Expd" textAnchor="middle" fontSize="4" x="25" y="6.75">{card.name}</text>
+                <ExpandedText fontSize="4" x="25" y="6.75">{card.name}</ExpandedText>
 
                 {/* Casting Time */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="13.5" y="12" textAnchor="middle">CASTING TIME</text>
-                <text fontSize="2" x="13.5" y="14.6" textAnchor="middle">{card.castingTime}</text>
+                <ExpandedText fill={color} x="13.5" y="12">CASTING TIME</ExpandedText>
+                <CardText x="13.5" y="14.6">{card.castingTime}</CardText>
 
                 {/* Range */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="36.5" y="12" textAnchor="middle">RANGE</text>
-                <text fontSize="2" x="36.5" y="14.6" textAnchor="middle">{card.range}</text>
+                <ExpandedText fill={color} x="36.5" y="12">RANGE</ExpandedText>
+                <CardText x="36.5" y="14.6" >{card.range}</CardText>
 
                 {/* Components */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="13.5" y="19" textAnchor="middle">COMPONENTS</text>
-                <text fontSize="2" x="13.5" y="21.6" textAnchor="middle">{card.components}</text>
+                <ExpandedText fill={color} x="13.5" y="19" >COMPONENTS</ExpandedText>
+                <CardText x="13.5" y="21.6">{card.components}</CardText>
 
                 {/* Duration */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill={color} x="36.5" y="19" textAnchor="middle">DURATION</text>
-                <text fontSize="2" x="36.5" y="21.6" textAnchor="middle">{durationCap}</text>
+                <ExpandedText fill={color} x="36.5" y="19" >DURATION</ExpandedText>
+                <CardText x="36.5" y="21.6" >{durationCap}</CardText>
                 {/* Duration Concentration */}
                 <g display={durationConc ? undefined : "none"}>
                     <polygon points="46,17 44,19.5 46,22 48,19.5 46,17" fill={color} />
-                    <text fontFamily="ModestoW01-Expd" fontSize="2" x="46" y="19.5" dominantBaseline="middle" textAnchor="middle" fill="#ffffff">C</text>
+                    <ExpandedText x="46" y="19.5" dominantBaseline="middle" fill="#ffffff">C</ExpandedText>
                 </g>
 
                 {/* Physical Components */}
                 <rect width="50" height="3.5" y="23" fill={color} ref={physComponentsBakgroundRef} />
-                <text fontSize="2" x="3" y="25.6" ref={physComponentsRef} fill="#ffffff" />
+                <CardText x="3" y="25.6" ref={physComponentsRef} fill="#ffffff" textAnchor="right" />
                 {/* Description */}
-                <text fontSize="2" x="3" y="25.5" ref={descriptionRef} />
+                <CardText x="3" y="25.5" ref={descriptionRef} textAnchor="right" />
                 {/* Extended Description */}
                 <g ref={extDescriptionTitleRef}>
                     <rect width="50" height="3.5" y="-3" fill={color} />
-                    <text fontWeight="bold" letterSpacing=".1" y="-.4" fontSize="2" x="25" textAnchor="middle" fill="#ffffff">At Higher Levels</text>
+                    <CardText fontWeight="bold" letterSpacing=".1" y="-.4" x="25" fill="#ffffff">At Higher Levels</CardText>
                 </g>
-                <text fontSize="2" x="3" ref={extDescriptionRef} />
+                <CardText x="3" ref={extDescriptionRef} textAnchor="right"/>
 
                 {/* Card class */}
-                <text fontFamily="ModestoW01-Expd" fontSize="2" fill="white" x="2.5" y="68.5">{card.clazz}</text>
+                <ExpandedText fill="white" x="2.5" y="68.5" textAnchor="left">{card.clazz}</ExpandedText>
                 {/* Card type */}
-                <text fontSize="2" fill="white" x="48" y="68.5" textAnchor="end">{cardType}</text>
-            </svg>
+                <CardText fill="white" x="48" y="68.5" textAnchor="end">{cardType}</CardText>
+            </RenderedCard>
         );
     });
 }
@@ -208,14 +209,14 @@ export function CardBack() {
         }
 
         return (
-            <svg className="backview view" width="50" height="70" viewBox="0 0 50 70" fontFamily="Modesto">
+            <RenderedCard>
                 {/* Cache images on screen for faster switch */}
                 <defs>
                     {Object.entries(outImages).map(([h, image]) => <image key={h} id={h} href={image} width="25" height="25" x="12.5" y="22.5" />)}
                 </defs>
 
                 <CardBackDyn />
-            </svg>
+            </RenderedCard>
         );
     });
 }

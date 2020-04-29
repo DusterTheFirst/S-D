@@ -6,6 +6,7 @@ import { useObserver } from "mobx-react-lite";
 import React, { useContext } from "react";
 import ICard from "../card/card";
 import { GlobalStateContext, SelectionType } from "../state";
+import { CardTitle } from "../styles/explorer/card";
 import { BetterMenuProvider } from "./ContextMenu";
 import { highlightMatches } from "./Explorer";
 
@@ -40,18 +41,18 @@ export default function CardComponent({ groupid, id, search }: IProps) {
             || state.selection.card !== id
             || state.selection.group !== groupid
             // Or if it is a match
-        ) && cardFilter(search)(card);
+        ) && !cardFilter(search)(card);
 
         return (
             <BetterMenuProvider id="card-contextmenu" selection={{ type: SelectionType.Card, card: id, group: groupid }}>
-                <div
-                    className={`card ${state.selection.type === SelectionType.Card && state.selection.card === id && state.selection.group === groupid ? "selected" : "notselected"}`}
+                <CardTitle
+                    selected={state.selection.type === SelectionType.Card && state.selection.card === id && state.selection.group === groupid}
                     onClick={select}
                     hidden={hidden}
                 >
                     {/* Highlight any text in the card that matches the search query */}
                     {highlightMatches(card.name, search)}
-                </div>
+                </CardTitle>
             </BetterMenuProvider>
         );
     });

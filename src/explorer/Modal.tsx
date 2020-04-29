@@ -6,7 +6,7 @@ import { Observer } from "mobx-react-lite";
 import React, { useContext } from "react";
 import ReactModal from "react-modal";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
-import "./Modal.scss";
+import { ModalButton, ModalButtons, ModalContainer, ModalDangerButton, ModalDangerEmph, ModalDesc, ModalDialog, ModalEmph, ModalStyles } from "../styles/modal";
 
 /** The props for the delete modal */
 interface IDeleteModalProps {
@@ -15,33 +15,6 @@ interface IDeleteModalProps {
     /** A way to change the selection */
     setDeleteSelection(selection: Selection): void;
 }
-
-/** The styles for the modal */
-export const ModalStyles: {
-    /** The content props */
-    content: React.CSSProperties;
-    /** The overlay props */
-    overlay: React.CSSProperties;
-} = {
-    content: {
-        background: "#1a1a1a",
-        border: "solid 1px #666666",
-        color: "#b8b8b8",
-        height: "150px",
-        left: "50%",
-        maxHeight: "calc(100% - 40px)",
-        maxWidth: "calc(100% - 40px)",
-        minHeight: "100px",
-        minWidth: "100px",
-        position: "absolute",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        width: "500px",
-    },
-    overlay: {
-        background: "#000000AA"
-    }
-};
 
 /** The delete confirmation modal */
 export default function DeleteModal({ deleteSelection, setDeleteSelection }: IDeleteModalProps) {
@@ -66,30 +39,30 @@ export default function DeleteModal({ deleteSelection, setDeleteSelection }: IDe
         if (deleteSelection.type === SelectionType.Group) {
             const group = state.groups[deleteSelection.group];
 
-            return <span className="info">Are you sure you want to delete the group <span className="name">{group.name}</span> and all of its cards</span>;
+            return <span>Are you sure you want to delete the group <ModalEmph>{group.name}</ModalEmph> and all of its cards</span>;
         } else if (deleteSelection.type === SelectionType.Card) {
             const card = state.groups[deleteSelection.group].cards[deleteSelection.card];
 
-            return <span className="info">Are you sure you want to delete the card <span className="name">{card.name}</span></span>;
+            return <span>Are you sure you want to delete the card <ModalEmph>{card.name}</ModalEmph></span>;
         } else {
-            return <div className="error">You have reached an invalid state, please press cancel</div>;
+            return <span>You have reached an invalid state, please press cancel</span>;
         }
     };
 
     return (
         <ReactModal isOpen={deleteSelection.type !== SelectionType.None} style={ModalStyles}>
-            <div className="modal">
-                <div className="dialog">
+            <ModalContainer>
+                <ModalDialog>
                     <Observer>{confirmationMessage}</Observer>
-                </div>
-                <div className="warn">
-                    This action is <span className="irreversible">irreversible</span>
-                </div>
-                <div className="buttons">
-                    <button onClick={closeDeleteModal}>Cancel</button>
-                    <button className="delete" onClick={deleteCard}>Delete</button>
-                </div>
-            </div>
+                </ModalDialog>
+                <ModalDesc>
+                    This action is <ModalDangerEmph>irreversible</ModalDangerEmph>
+                </ModalDesc>
+                <ModalButtons>
+                    <ModalButton onClick={closeDeleteModal}>Cancel</ModalButton>
+                    <ModalDangerButton onClick={deleteCard}>Delete</ModalDangerButton>
+                </ModalButtons>
+            </ModalContainer>
         </ReactModal>
     );
 }
