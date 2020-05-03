@@ -22,7 +22,7 @@ interface IProps {
 
 /** Filter for cards */
 export function cardFilter(filter: string) {
-    return (card: ICard) => (card.name !== undefined && card.name.toLowerCase().includes(filter.toLowerCase()));
+    return (card: ICard) => (card.name.toLowerCase().includes(filter.toLowerCase()));
 }
 
 /** A card component in the explortr */
