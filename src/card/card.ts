@@ -5,7 +5,7 @@
 /** A S&D card */
 export default interface ICard {
     /** The name of the card */
-    name?: string;
+    name: string;
     /** The casting time for the card */
     castingTime?: string;
     /** The range for the card */

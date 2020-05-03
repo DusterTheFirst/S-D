@@ -174,11 +174,11 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     state.select(props.group, card);
 
                     // Render and export the cards into a new zip file
-                    await renderedCards.current.render(render.folder(state.groups[props.group].cards[card].name ?? "Unnamed"));
+                    await renderedCards.current.render(render.folder(state.groups[props.group].cards[card].name));
                 }
 
                 // Save the zip file
-                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].name ?? "Unnamed");
+                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].name);
 
                 // Return selection
                 state.setSelection(preselect);
@@ -193,7 +193,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                 const render = await renderedCards.current.render();
 
                 // Save the zip file
-                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].cards[props.card].name ?? "Unnamed");
+                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].cards[props.card].name);
 
                 // Return selection
                 state.setSelection(preselect);
@@ -212,7 +212,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                         state.select(group, card);
 
                         // Render and export the cards into a new zip file
-                        await renderedCards.current.render(groupFolder.folder(state.groups[group].cards[card].name ?? "Unnamed"));
+                        await renderedCards.current.render(groupFolder.folder(state.groups[group].cards[card].name));
                     }
                 }
 

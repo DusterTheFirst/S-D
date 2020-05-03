@@ -11,10 +11,13 @@ export interface ICardGroupData {
     /** The name of the group */
     readonly name: string;
     /** The defaults for the cards */
-    readonly defaults: ICard;
+    readonly defaults: Partial<ICard>;
     /** The child cards of the group */
     readonly cards: ICard[];
 }
+
+/** The defaults that can be from a card group */
+export type ICardGroupDefaults = Omit<ICard, "name">;
 
 /** A group of cards */
 export default class CardGroup {
@@ -23,12 +26,12 @@ export default class CardGroup {
     public name: string;
     /** The defaults for the cards */
     @observable @persist("object")
-    public defaults: ICard;
+    public defaults: ICardGroupDefaults;
     /** The child cards of the group */
     @observable @persist("list")
     private readonly _cards: ICard[];
 
-    constructor(name = "", defaults: ICard = {}, cards: ICard[] = []) {
+    constructor(name = "", defaults: ICardGroupDefaults = {}, cards: ICard[] = []) {
         this.name = name;
         this._cards = cards;
         this.defaults = defaults;
@@ -50,11 +53,7 @@ export default class CardGroup {
 
     /** Add a card to the group */
     @action
-    public addCard(card: ICard = {}) {
-        if (card.name === undefined) {
-            card.name = "Unnamed";
-        }
-
+    public addCard(card: ICard = { name: `New Card ${this._cards.length}` }) {
         return this._cards.push(card) - 1;
     }
 
@@ -89,7 +88,7 @@ export default class CardGroup {
         this._cards[card] = Object.entries({ ...this._cards[card], [key]: value })
             // Remove undefined props
             .filter(([, v]) => v !== undefined)
-            .reduce<ICard>((pre, [k, v]) => ({ ...pre, [k]: v }), {});
+            .reduce<ICard>((pre, [k, v]) => ({ ...pre, [k]: v }), {} as unknown as ICard);
     }
 
     /** Change the value of the groups defaults */
@@ -98,7 +97,7 @@ export default class CardGroup {
         this.defaults = Object.entries({ ...this.defaults, [key]: value })
             // Remove undefined props
             .filter(([, v]) => v !== undefined)
-            .reduce<ICard>((pre, [k, v]) => ({ ...pre, [k]: v }), {});
+            .reduce<Partial<ICard>>((pre, [k, v]) => ({ ...pre, [k]: v }), {});
     }
 
     /** Change the value of the groups defaults */

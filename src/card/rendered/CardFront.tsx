@@ -22,7 +22,13 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
     const extDescriptionTitleRef = useRef<SVGGElement>(null);
 
     // Card selection
-    const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
+    const card = useObserver(() =>
+        state.selection.type === SelectionType.Card
+            ? state.groups[state.selection.group].cards[state.selection.card]
+            : state.selection.type === SelectionType.Group
+                ? { name: state.groups[state.selection.group].name, ...state.groups[state.selection.group].defaults }
+                : { name: "No Selection" }
+    );
 
     // Apply word wrapping to text
     useEffect(() => {

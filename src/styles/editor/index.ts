@@ -53,7 +53,7 @@ export const EditorTitle = styled.div`
 /** A label for an editor value */
 export const EditorLabel = styled.label`
     font-weight: bold;
-    display: block;
+    display: ${props => props.hidden === true ? "none" : "block"};
     user-select: none;
 
     &:hover > input,

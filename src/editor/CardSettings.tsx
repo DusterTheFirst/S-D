@@ -17,7 +17,12 @@ export default function CardSettings() {
     const imageRef = useRef<HTMLInputElement>(null);
 
     return useObserver(() => {
-        const cardSettings = state.selection.type === SelectionType.Card ? state.groups[state.selection.group].rawCards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {};
+        const cardSettings =
+            state.selection.type === SelectionType.Card
+                ? state.groups[state.selection.group].rawCards[state.selection.card]
+                : state.selection.type === SelectionType.Group
+                    ? { name: state.groups[state.selection.group].name, ...state.groups[state.selection.group].defaults }
+                    : { name: "No Selection" };
         const placeholders = state.selection.type === SelectionType.Card ? state.groups[state.selection.group].defaults : undefined;
 
         /** Update the internal cache values of a text value */
@@ -26,7 +31,7 @@ export default function CardSettings() {
                 event.persist();
 
                 if (state.selection.type === SelectionType.Card) {
-                    state.groups[state.selection.group].editCard(state.selection.card, name, event.currentTarget.value === "" ? undefined : event.currentTarget.value);
+                    state.groups[state.selection.group].editCard(state.selection.card, name, event.currentTarget.value === "" && name !== "name" ? undefined : event.currentTarget.value);
                 } else if (state.selection.type === SelectionType.Group) {
                     state.groups[state.selection.group].editDefaults(name, event.currentTarget.value === "" ? undefined : event.currentTarget.value);
                 }
@@ -71,9 +76,9 @@ export default function CardSettings() {
             <EditorValues>
                 <GroupSettings />
                 <EditorTitle>Card Settings</EditorTitle>
-                <EditorLabel>
+                <EditorLabel hidden={state.selection.type === SelectionType.Group}>
                     Name:
-                    <EditorInput type="text" value={cardSettings.name ?? ""} onChange={cardValueUpdater("name")} placeholder={placeholders?.name} />
+                    <EditorInput type="text" value={cardSettings.name ?? ""} onChange={cardValueUpdater("name")} />
                 </EditorLabel>
                 <EditorLabel>
                     Casting Time:

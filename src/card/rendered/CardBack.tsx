@@ -18,7 +18,7 @@ function CardBackDyn() {
             ? state.groups[state.selection.group].cards[state.selection.card]
             : state.selection.type === SelectionType.Group
                 ? state.groups[state.selection.group].defaults
-                : {}
+                : { name: "No Selection" }
     );
     const hash = useMemo(() => hashCode(card.image ?? ""), [card.image]);
 
