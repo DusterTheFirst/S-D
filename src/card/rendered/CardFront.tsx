@@ -139,8 +139,8 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
                 <CardText x="36.5" y="21.6" >{durationCap}</CardText>
                 {/* Duration Concentration */}
                 <g display={durationConc ? undefined : "none"}>
-                    <polygon points="46,17 44,19.5 46,22 48,19.5 46,17" fill={color} />
-                    <ExpandedText x="46" y="19.5" dominantBaseline="middle" fill="#ffffff">C</ExpandedText>
+                    <polygon points="45.5,17 43.5,19.5 45.5,22 47.5,19.5 45.5,17" fill={color} />
+                    <ExpandedText x="45.5" y="19.5" dominantBaseline="middle" fill="#ffffff">C</ExpandedText>
                 </g>
 
                 {/* Physical Components */}

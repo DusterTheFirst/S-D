@@ -4,6 +4,7 @@
 
 import { useObserver } from "mobx-react-lite";
 import React, { forwardRef, useContext, useMemo } from "react";
+import { IsRenderingContext } from "../../App";
 import { GlobalStateContext, SelectionType } from "../../state";
 import { RenderedCard } from "../../styles/renderedCard";
 import { hashCode } from "../../util/string";
@@ -12,6 +13,7 @@ import SVGStyle from "./SVGStyle";
 /** The more dynamic part of the card back */
 function CardBackDyn() {
     const state = useContext(GlobalStateContext);
+    const [isRendering] = useContext(IsRenderingContext);
 
     const card = useObserver(() =>
         state.selection.type === SelectionType.Card
@@ -45,43 +47,48 @@ function CardBackDyn() {
                 <text fontSize="10" fontWeight="bold" fill={color} x="12" y="62" textAnchor="middle">{card.level}</text>
 
                 {/* Card image */}
-                <use href={`#${hash}`} />
+                {isRendering ? <image href={card.image} width="25" height="25" x="12.5" y="22.5" /> : <use href={`#${hash}`} />}
             </>
         );
     });
 }
 
-/** The back face of the card */
-const CardBack = forwardRef<SVGSVGElement>((_, ref) => {
+/** A component that contains hidden images to preload them into memory */
+function CardImagePreloader() {
     const state = useContext(GlobalStateContext);
 
     return useObserver(() => {
-        const outImages: {
-            [x: string]: string | undefined;
-        } = {};
+        const preloadedImages = new Map<number, JSX.Element>();
 
         for (const g of state.groups) {
             for (const c of g.cards) {
                 if (c.image !== undefined) {
-                    const hashed = hashCode(c.image);
-                    if (outImages[hashed] === undefined) {
-                        outImages[hashed] = c.image;
+                    const hash = hashCode(c.image);
+                    if (!preloadedImages.has(hash)) {
+                        preloadedImages.set(hash, <image key={hash} id={hash.toString()} href={c.image} width="25" height="25" x="12.5" y="22.5" />);
                     }
                 }
             }
         }
 
-        return (
-            <RenderedCard ref={ref}>
-                <defs>
-                    {Object.entries(outImages).map(([h, image]) => <image key={h} id={h} href={image} width="25" height="25" x="12.5" y="22.5" />)}
-                    <SVGStyle />
-                </defs>
-
-                <CardBackDyn />
-            </RenderedCard>
-        );
+        return <>{Array.from(preloadedImages.values())}</>;
     });
+}
+
+/** The back face of the card */
+const CardBack = forwardRef<SVGSVGElement>((_, ref) => {
+    const [isRendering] = useContext(IsRenderingContext);
+
+    return (
+        <RenderedCard ref={ref}>
+            <defs>
+                {isRendering ? null : <CardImagePreloader />}
+                <SVGStyle />
+            </defs>
+
+            <CardBackDyn />
+        </RenderedCard>
+    );
 });
 
 export default CardBack;
