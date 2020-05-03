@@ -17,7 +17,7 @@ export interface ICardGroupData {
 }
 
 /** The defaults that can be from a card group */
-export type ICardGroupDefaults = Omit<ICard, "name">;
+type ICardGroupDefaults = Omit<ICard, "name">;
 
 /** A group of cards */
 export default class CardGroup {
