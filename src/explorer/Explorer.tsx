@@ -10,7 +10,7 @@ import { MenuItemEventHandler, TriggerEvent } from "react-contexify/lib/types";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
 import { ExplorerAddButton, ExplorerContainer, ExplorerGroups, ExplorerHeader, ExplorerHighlight, ExplorerSearch, ExplorerSearchX, ExporerSearchInput } from "../styles/explorer";
-import { DownloadFile, load, textFileReaderAsync } from "../util/file";
+import { DownloadSelection, loadSelection, textFileReaderAsync } from "../util/file";
 import useIsTop from "../util/useIsTop";
 import CardGroupComponent from "./CardGroupComponent";
 import { BetterMenuProvider } from "./ContextMenu";
@@ -75,7 +75,7 @@ export default function Explorer() {
             if (file.type === "application/json" || file.name.endsWith(".json")) {
                 const contents = await textFileReaderAsync(file);
 
-                load(JSON.parse(contents) as DownloadFile, state);
+                loadSelection(JSON.parse(contents) as DownloadSelection, state);
             } else {
                 console.error(`Format "${file.type}" unrecognised`);
             }

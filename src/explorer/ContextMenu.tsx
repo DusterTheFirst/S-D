@@ -2,14 +2,16 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
+import JSZip from "jszip";
 import { toJS } from "mobx";
 import { useObserver } from "mobx-react-lite";
 import React, { MouseEvent, PropsWithChildren, useContext } from "react";
 import { contextMenu, Item, Menu, Separator } from "react-contexify";
+import { IsRenderingContext, RenderedCardsContext } from "../App";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
 import { DangerItem } from "../styles/contextMenu";
-import { download } from "../util/file";
+import { downloadSelection } from "../util/file";
 import { IItemArgs, ItemHandler } from "./Explorer";
 
 /** Props to the better menu provider component */
@@ -55,19 +57,21 @@ interface IECMProps {
 /** The context menus for the explorer */
 export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
     const state = useContext(GlobalStateContext);
+    const renderedCards = useContext(RenderedCardsContext);
+    const [, setIsRendering] = useContext(IsRenderingContext);
 
     return useObserver(() => {
         const downloadClick = (({ props }: IItemArgs) => {
             if (props.type === SelectionType.Group) {
                 const group = state.groups[props.group];
 
-                download({ type: SelectionType.Group, data: group.data }, `${group.name}.group.json`);
+                downloadSelection({ type: SelectionType.Group, data: group.data }, `${group.name}.group.json`);
             } else if (props.type === SelectionType.Card) {
                 const card = state.groups[props.group].cards[props.card];
 
-                download({ type: SelectionType.Card, data: card }, `${card.name}.card.json`);
+                downloadSelection({ type: SelectionType.Card, data: card }, `${card.name}.card.json`);
             } else {
-                download({ type: SelectionType.None, data: toJS(state.groupsData) }, `workspace.json`);
+                downloadSelection({ type: SelectionType.None, data: toJS(state.groupsData) }, `workspace.json`);
             }
         }) as unknown as ItemHandler;
 
@@ -151,6 +155,77 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
             state.select();
         };
 
+        const renderClick = (async ({ props }: IItemArgs) => {
+            if (renderedCards.current === null) {
+                return;
+            }
+
+            setIsRendering(true);
+
+            if (props.type === SelectionType.Group) {
+                // Save the previous selection
+                const preselect = state.selection;
+
+                // Create zip file
+                const render = new JSZip();
+
+                for (let card = 0; card < state.groups[props.group].cards.length; card++) {
+                    // Select and render the current card
+                    state.select(props.group, card);
+
+                    // Render and export the cards into a new zip file
+                    await renderedCards.current.render(render.folder(state.groups[props.group].cards[card].name ?? "Unnamed"));
+                }
+
+                // Save the zip file
+                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].name ?? "Unnamed");
+
+                // Return selection
+                state.setSelection(preselect);
+            } else if (props.type === SelectionType.Card) {
+                // Save the previous selection
+                const preselect = state.selection;
+
+                // Select and render the current card
+                state.select(props.group, props.card);
+
+                // Render and export the cards into a new zip file
+                const render = await renderedCards.current.render();
+
+                // Save the zip file
+                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].cards[props.card].name ?? "Unnamed");
+
+                // Return selection
+                state.setSelection(preselect);
+            } else {
+                // Save the previous selection
+                const preselect = state.selection;
+
+                // Create zip file
+                const render = new JSZip();
+
+                for (let group = 0; group < state.groups.length; group++) {
+                    const groupFolder = render.folder(state.groups[group].name);
+
+                    for (let card = 0; card < state.groups[group].cards.length; card++) {
+                        // Select and render the current card
+                        state.select(group, card);
+
+                        // Render and export the cards into a new zip file
+                        await renderedCards.current.render(groupFolder.folder(state.groups[group].cards[card].name ?? "Unnamed"));
+                    }
+                }
+
+                // Save the zip file
+                saveAs(await render.generateAsync({ type: "blob" }), "workspace");
+
+                // Return selection
+                state.setSelection(preselect);
+            }
+
+            setIsRendering(false);
+        }) as unknown as ItemHandler;
+
         return (
             <>
                 <Menu id="none-contextmenu">
@@ -159,7 +234,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item onClick={deselect}>Deselect All</Item>
                     <Separator />
                     <Item onClick={downloadClick}>Download All</Item>
-                    <Item disabled={true}>Render All</Item>
+                    <Item onClick={renderClick}>Render All</Item>
                     <Item disabled={true}>Print All</Item>
                 </Menu>
                 <Menu id="group-contextmenu">
@@ -171,7 +246,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item onClick={downClick} disabled={downDisable}>Move Down</Item>
                     <Separator />
                     <Item onClick={downloadClick}>Download Group</Item>
-                    <Item disabled={true}>Render Group</Item>
+                    <Item onClick={renderClick}>Render Group</Item>
                     <Item disabled={true}>Print Group</Item>
                     <Separator />
                     <DangerItem onClick={deleteClick}>Delete</DangerItem>
@@ -183,7 +258,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item onClick={downClick} disabled={downDisable}>Move Down</Item>
                     <Separator />
                     <Item onClick={downloadClick}>Download Card</Item>
-                    <Item disabled={true}>Render Card</Item>
+                    <Item onClick={renderClick}>Render Card</Item>
                     <Item disabled={true}>Print Card</Item>
                     <Separator />
                     <DangerItem onClick={deleteClick}>Delete</DangerItem>

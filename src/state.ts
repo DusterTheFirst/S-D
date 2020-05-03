@@ -65,6 +65,12 @@ export class GlobalState {
         }
     }
 
+    /** A way to set the selection directly */
+    @action
+    public setSelection(selection: Selection) {
+        this._selection = selection;
+    }
+
     /** Add a group */
     @action
     public addGroup(group: CardGroup) {

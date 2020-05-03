@@ -3,7 +3,7 @@
  */
 
 import { useObserver } from "mobx-react-lite";
-import React, { createRef, useContext } from "react";
+import React, { useContext, useRef } from "react";
 import ICard from "../card/card";
 import { GlobalStateContext, SelectionType } from "../state";
 import { EditorImage, EditorInput, EditorLabel, EditorTitle, EditorValues } from "../styles/editor";
@@ -14,7 +14,7 @@ import GroupSettings from "./GroupSettings";
 /** The CardSettings section */
 export default function CardSettings() {
     const state = useContext(GlobalStateContext);
-    const imageRef = createRef<HTMLInputElement>();
+    const imageRef = useRef<HTMLInputElement>(null);
 
     return useObserver(() => {
         const cardSettings = state.selection.type === SelectionType.Card ? state.groups[state.selection.group].rawCards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {};
@@ -33,11 +33,11 @@ export default function CardSettings() {
             };
         };
 
-        const clearColor = () => {
+        const clear = (param: keyof ICard) => () => {
             if (state.selection.type === SelectionType.Card) {
-                state.groups[state.selection.group].editCard(state.selection.card, "color", undefined);
+                state.groups[state.selection.group].editCard(state.selection.card, param, undefined);
             } else if (state.selection.type === SelectionType.Group) {
-                state.groups[state.selection.group].editDefaults("color", undefined);
+                state.groups[state.selection.group].editDefaults(param, undefined);
             }
         };
 
@@ -118,12 +118,13 @@ export default function CardSettings() {
                 <EditorLabel>
                     Color:
                     <EditorInput type="color" value={cardSettings.color ?? ""} onChange={cardValueUpdater("color")} placeholder={placeholders?.color} />
-                    <button onClick={clearColor}>Clear Color</button>
+                    <button onClick={clear("color")} disabled={cardSettings.color === undefined}>Clear Color</button>
                 </EditorLabel>
                 <EditorLabel>
                     Image:
-                    <EditorImage src={cardSettings.image} alt="Card Back" />
+                    <EditorImage src={cardSettings.image} alt="Group Default" />
                     <EditorInput type="file" accept="image/*" onChange={fileInput} ref={imageRef} />
+                    <button onClick={clear("image")} disabled={cardSettings.image === undefined}>Remove Image</button>
                 </EditorLabel>
             </EditorValues>
         );

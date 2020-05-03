@@ -3,15 +3,16 @@
  */
 
 import { create } from "mobx-persist";
-import React, { useContext, useEffect, useState } from "react";
-import { CardBack, CardFront } from "./card/RenderedCard";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import RenderedCards, { IRenderedCardsRef } from "./card/rendered/RenderedCards";
 import Editor from "./editor/Editor";
 import { ExplorerContextMenus } from "./explorer/ContextMenu";
+import DeleteModal from "./explorer/DeleteModal";
 import Explorer from "./explorer/Explorer";
-import DeleteModal from "./explorer/Modal";
 import register from "./registerServiceWorker";
+import RenderingModal from "./RenderingModal";
 import { GlobalStateContext, Selection, SelectionType } from "./state";
-import { AppContainer, CardContainer } from "./styles/app";
+import { AppContainer } from "./styles/app";
 import { ContextMenuStyles } from "./styles/contextMenu";
 import GlobalStyles from "./styles/global";
 import UpdateModal from "./UpdateModal";
@@ -19,13 +20,23 @@ import UpdateModal from "./UpdateModal";
 /**
  * TODO:
  * - Better layout
- * - Styled components?
  * - Printing (double sided)
  */
+
+/** The context for the rendered cards component */
+export const RenderedCardsContext = createContext<React.RefObject<IRenderedCardsRef>>({ current: null });
+/** The context for the rendering state */
+export const IsRenderingContext = createContext<[boolean, (value: boolean) => void]>([false, () => void 0]);
 
 /** The main app component */
 export default function App() {
     const state = useContext(GlobalStateContext);
+
+    const [isRendering, setIsRendering] = useState(false);
+
+    const cardsRef = useRef<IRenderedCardsRef>(null);
+
+    // Updates
     const [updateAvaliable, setUpdateAvaliable] = useState(false);
     const doUpdate = (update: boolean) => {
         if (update) {
@@ -62,26 +73,30 @@ export default function App() {
 
     return (
         <AppContainer>
-            {/* Global styles */}
-            <GlobalStyles />
-            <ContextMenuStyles />
+            <RenderedCardsContext.Provider value={cardsRef}>
+                <IsRenderingContext.Provider value={[isRendering, setIsRendering]}>
+                    {/* Global styles */}
+                    <GlobalStyles />
+                    <ContextMenuStyles />
 
-            {/* The exporer view */}
-            <Explorer />
-            <ExplorerContextMenus setDeleteSelection={setDeleteSelection} />
-            <DeleteModal setDeleteSelection={setDeleteSelection} deleteSelection={deleteSelection} />
+                    {/* The exporer view */}
+                    <Explorer />
+                    <ExplorerContextMenus setDeleteSelection={setDeleteSelection} />
+                    <DeleteModal setDeleteSelection={setDeleteSelection} deleteSelection={deleteSelection} />
 
-            {/* The editor */}
-            <Editor />
+                    {/* The editor */}
+                    <Editor />
 
-            {/* The card renders */}
-            <CardContainer>
-                <CardFront />
-                <CardBack />
-            </CardContainer>
+                    {/* The card renders */}
+                    <RenderedCards ref={cardsRef} />
 
-            {/* The update modal */}
-            <UpdateModal doUpdate={doUpdate} show={updateAvaliable} />
+                    {/* The update modal */}
+                    <UpdateModal doUpdate={doUpdate} show={updateAvaliable} />
+
+                    {/* The rendering modal */}
+                    <RenderingModal show={isRendering} />
+                </IsRenderingContext.Provider>
+            </RenderedCardsContext.Provider>
         </AppContainer>
     );
 }

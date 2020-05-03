@@ -2,12 +2,12 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import React, { createRef, memo, useCallback, useEffect } from "react";
+import React, { memo, useCallback, useEffect, useRef } from "react";
 import { EditorTextArea } from "../styles/editor";
 
 /** A text area that resizes when it overflows */
 const AutoResizeTextArea = memo((props: React.DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement>) => {
-    const ref = createRef<HTMLTextAreaElement>();
+    const ref = useRef<HTMLTextAreaElement>(null);
 
     const resize = useCallback(() => {
         if (ref.current === null) {

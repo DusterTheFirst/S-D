@@ -3,22 +3,23 @@
  */
 
 import { useObserver } from "mobx-react-lite";
-import React, { createRef, useContext, useEffect, useMemo } from "react";
-import { GlobalStateContext, SelectionType } from "../state";
-import { CardText, ExpandedText, RenderedCard } from "../styles/renderedCard";
-import { bulletLists, hashCode, ordinalSuffixOf } from "../util/string";
-import { wordWrapSVG } from "../util/wordWrap";
+import React, { forwardRef, useContext, useEffect, useRef } from "react";
+import { GlobalStateContext, SelectionType } from "../../state";
+import { CardText, ExpandedText, RenderedCard } from "../../styles/renderedCard";
+import { bulletLists, ordinalSuffixOf } from "../../util/string";
+import { wordWrapSVG } from "../../util/wordWrap";
+import SVGStyle from "./SVGStyle";
 
 /** The front face of the card */
-export function CardFront() {
+const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
     const state = useContext(GlobalStateContext);
 
     // Refs to wrappable words
-    const physComponentsRef = createRef<SVGTextElement>();
-    const physComponentsBakgroundRef = createRef<SVGRectElement>();
-    const descriptionRef = createRef<SVGTextElement>();
-    const extDescriptionRef = createRef<SVGTextElement>();
-    const extDescriptionTitleRef = createRef<SVGGElement>();
+    const physComponentsRef = useRef<SVGTextElement>(null);
+    const physComponentsBackgroundRef = useRef<SVGRectElement>(null);
+    const descriptionRef = useRef<SVGTextElement>(null);
+    const extDescriptionRef = useRef<SVGTextElement>(null);
+    const extDescriptionTitleRef = useRef<SVGGElement>(null);
 
     // Card selection
     const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
@@ -30,7 +31,7 @@ export function CardFront() {
 
         // Aliases for refs
         const physComp = physComponentsRef.current;
-        const physCompBkg = physComponentsBakgroundRef.current;
+        const physCompBkg = physComponentsBackgroundRef.current;
         const desc = descriptionRef.current;
         const extDesc = extDescriptionRef.current;
         const extDescTitle = extDescriptionTitleRef.current;
@@ -82,7 +83,7 @@ export function CardFront() {
         descriptionRef,
         extDescriptionRef,
         extDescriptionTitleRef,
-        physComponentsBakgroundRef,
+        physComponentsBackgroundRef,
         physComponentsRef
     ]);
 
@@ -97,7 +98,10 @@ export function CardFront() {
         const color = card.color ?? "#000000";
 
         return (
-            <RenderedCard>
+            <RenderedCard ref={ref}>
+                <defs>
+                    <SVGStyle />
+                </defs>
                 {/* Frame */}
                 <rect width="50" height="70" fill={color} />
                 {/* Background */}
@@ -134,7 +138,7 @@ export function CardFront() {
                 </g>
 
                 {/* Physical Components */}
-                <rect width="50" height="3.5" y="23" fill={color} ref={physComponentsBakgroundRef} />
+                <rect width="50" height="3.5" y="23" fill={color} ref={physComponentsBackgroundRef} />
                 <CardText x="3" y="25.6" ref={physComponentsRef} fill="#ffffff" textAnchor="right" />
                 {/* Description */}
                 <CardText x="3" y="25.5" ref={descriptionRef} textAnchor="right" />
@@ -143,7 +147,7 @@ export function CardFront() {
                     <rect width="50" height="3.5" y="-3" fill={color} />
                     <CardText fontWeight="bold" letterSpacing=".1" y="-.4" x="25" fill="#ffffff">At Higher Levels</CardText>
                 </g>
-                <CardText x="3" ref={extDescriptionRef} textAnchor="right"/>
+                <CardText x="3" ref={extDescriptionRef} textAnchor="right" />
 
                 {/* Card class */}
                 <ExpandedText fill="white" x="2.5" y="68.5" textAnchor="left">{card.clazz}</ExpandedText>
@@ -152,71 +156,6 @@ export function CardFront() {
             </RenderedCard>
         );
     });
-}
+});
 
-/** The more dynamic part of the card back */
-function CardBackDyn() {
-    const state = useContext(GlobalStateContext);
-
-    const card = useObserver(() => state.selection.type === SelectionType.Card ? state.groups[state.selection.group].cards[state.selection.card] : state.selection.type === SelectionType.Group ? state.groups[state.selection.group].defaults : {});
-    const hash = useMemo(() => hashCode(card.image ?? ""), [card.image]);
-
-    return useObserver(() => {
-        const color = card.color ?? "#000000";
-
-        return (
-            <>
-                {/* Frame */}
-                <rect width="50" height="70" fill={color} />
-
-                {/* Background */}
-                <rect width="46" height="66" x="2" y="2" rx="2" ry="2" fill="white" />
-
-                {/* Rounded line */}
-                <rect width="40" height="60" x="5" y="5" rx="2" ry="2" stroke={color} strokeWidth="0.5" fill="transparent" />
-
-                {/* Rhombus */}
-                <polyline points="5.25,35 25,5.25 45,34.75 25,64.75 5.25,35" fill="transparent" stroke={color} strokeWidth=".5" />
-
-                {/* Card level top right */}
-                <text fontSize="10" fontWeight="bold" fill={color} x="38" y="15" textAnchor="middle">{card.level}</text>
-                {/* Card level bottom left */}
-                <text fontSize="10" fontWeight="bold" fill={color} x="12" y="62" textAnchor="middle">{card.level}</text>
-
-                {/* Card image */}
-                <use href={`#${hash}`} />
-            </>
-        );
-    });
-}
-
-/** The back face of the card */
-export function CardBack() {
-    const state = useContext(GlobalStateContext);
-
-    return useObserver(() => {
-        const outImages: { [x: string]: string | undefined } = {};
-
-        for (const g of state.groups) {
-            for (const c of g.cards) {
-                if (c.image !== undefined) {
-                    const hashed = hashCode(c.image);
-                    if (outImages[hashed] === undefined) {
-                        outImages[hashed] = c.image;
-                    }
-                }
-            }
-        }
-
-        return (
-            <RenderedCard>
-                {/* Cache images on screen for faster switch */}
-                <defs>
-                    {Object.entries(outImages).map(([h, image]) => <image key={h} id={h} href={image} width="25" height="25" x="12.5" y="22.5" />)}
-                </defs>
-
-                <CardBackDyn />
-            </RenderedCard>
-        );
-    });
-}
+export default CardFront;

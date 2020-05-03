@@ -2,6 +2,7 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
+import { saveAs } from "file-saver";
 import ICard from "../card/card";
 import CardGroup, { ICardGroupData } from "../card/cardGroup";
 import { GlobalState, SelectionType } from "../state";
@@ -39,7 +40,7 @@ export async function dataFileReaderAsync(file: Blob) {
 }
 
 /** The structure for a downloaded file */
-export type DownloadFile = {
+export type DownloadSelection = {
     /** The type of selection */
     type: SelectionType.None;
     /** All groups */
@@ -57,23 +58,12 @@ export type DownloadFile = {
 };
 
 /** Helper to download a file */
-export function download(file: DownloadFile, filename: string) {
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(new Blob([JSON.stringify(file)], { type: "application/json" }));
-
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-
-    setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }, 0);
+export function downloadSelection(file: DownloadSelection, filename: string) {
+    saveAs(new Blob([JSON.stringify(file)], { type: "application/json" }), filename);
 }
 
 /** Helper to laod a file */
-export function load(file: DownloadFile, state: GlobalState) {
+export function loadSelection(file: DownloadSelection, state: GlobalState) {
     if (file.type === SelectionType.None) {
         for (const group of file.data) {
             state.addGroup(CardGroup.fromData(group));
@@ -84,7 +74,7 @@ export function load(file: DownloadFile, state: GlobalState) {
     } else {
         if (state.selection.type === SelectionType.Card || state.selection.type === SelectionType.Group) {
             const id = state.groups[state.selection.group].addCard(file.data);
-            state.select(id);
+            state.select(state.selection.group, id);
         } else {
             alert("Attempted to add a card when no group is selected");
         }

@@ -7,9 +7,11 @@ import styled from "styled-components";
 /** The view container for the rendered card svg */
 export const RenderedCard = styled.svg.attrs({
     fontFamily: "Modesto",
-    height: 70,
+    height: 700,
+    version: "1.1",
     viewBox: "0 0 50 70",
-    width: 50
+    width: 500,
+    xmlns: "http://www.w3.org/2000/svg",
 })`
     width: 300px;
     height: calc(300px * 7/5);
