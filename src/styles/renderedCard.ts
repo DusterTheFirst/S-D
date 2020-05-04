@@ -6,7 +6,7 @@ import styled from "styled-components";
 
 /** The view container for the rendered card svg */
 export const RenderedCard = styled.svg.attrs({
-    fontFamily: "Modesto",
+    fontFamily: "Modesto-Regular",
     height: 700,
     version: "1.1",
     viewBox: "0 0 50 70",

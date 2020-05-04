@@ -8,7 +8,7 @@ import { GlobalStateContext, SelectionType } from "../../state";
 import { CardText, ExpandedText, RenderedCard } from "../../styles/renderedCard";
 import { bulletLists, ordinalSuffixOf } from "../../util/string";
 import { wordWrapSVG } from "../../util/wordWrap";
-import SVGStyle from "./SVGStyle";
+import useEmbeddedFont from "./useEmbeddedFont";
 
 /** The front face of the card */
 const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
@@ -30,8 +30,13 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
                 : { name: "No Selection" }
     );
 
+    const fonts = useEmbeddedFont();
+
     // Apply word wrapping to text
     useEffect(() => {
+        if (fonts === null) {
+            return undefined;
+        }
         // Collecctive hight of blocks
         let currHeight = 0;
 
@@ -90,7 +95,8 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
         extDescriptionRef,
         extDescriptionTitleRef,
         physComponentsBackgroundRef,
-        physComponentsRef
+        physComponentsRef,
+        fonts
     ]);
 
     return useObserver(() => {
@@ -106,7 +112,7 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
         return (
             <RenderedCard ref={ref}>
                 <defs>
-                    <SVGStyle />
+                    <style>{fonts}</style>
                 </defs>
                 {/* Frame */}
                 <rect width="50" height="70" fill={color} />

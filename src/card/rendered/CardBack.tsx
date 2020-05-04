@@ -8,7 +8,7 @@ import { IsRenderingContext } from "../../App";
 import { GlobalStateContext, SelectionType } from "../../state";
 import { RenderedCard } from "../../styles/renderedCard";
 import { hashCode } from "../../util/string";
-import SVGStyle from "./SVGStyle";
+import useEmbeddedFont from "./useEmbeddedFont";
 
 /** The more dynamic part of the card back */
 function CardBackDyn() {
@@ -79,11 +79,13 @@ function CardImagePreloader() {
 const CardBack = forwardRef<SVGSVGElement>((_, ref) => {
     const [isRendering] = useContext(IsRenderingContext);
 
+    const fonts = useEmbeddedFont();
+
     return (
         <RenderedCard ref={ref}>
             <defs>
                 {isRendering ? null : <CardImagePreloader />}
-                <SVGStyle />
+                <style>{fonts}</style>
             </defs>
 
             <CardBackDyn />

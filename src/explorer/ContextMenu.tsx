@@ -2,12 +2,11 @@
  * Copyright (C) 2018-2020  Zachary Kohnen (DusterTheFirst)
  */
 
-import JSZip from "jszip";
 import { toJS } from "mobx";
 import { useObserver } from "mobx-react-lite";
 import React, { MouseEvent, PropsWithChildren, useContext } from "react";
 import { contextMenu, Item, Menu, Separator } from "react-contexify";
-import { IsRenderingContext, RenderedCardsContext } from "../App";
+import { RenderedCardsContext } from "../App";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
 import { DangerItem } from "../styles/contextMenu";
@@ -58,7 +57,6 @@ interface IECMProps {
 export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
     const state = useContext(GlobalStateContext);
     const renderedCards = useContext(RenderedCardsContext);
-    const [, setIsRendering] = useContext(IsRenderingContext);
 
     return useObserver(() => {
         const downloadClick = (({ props }: IItemArgs) => {
@@ -160,70 +158,17 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                 return;
             }
 
-            setIsRendering(true);
+            // Render the cards
+            await renderedCards.current.render(props);
+        }) as unknown as ItemHandler;
 
-            if (props.type === SelectionType.Group) {
-                // Save the previous selection
-                const preselect = state.selection;
-
-                // Create zip file
-                const render = new JSZip();
-
-                for (let card = 0; card < state.groups[props.group].cards.length; card++) {
-                    // Select and render the current card
-                    state.select(props.group, card);
-
-                    // Render and export the cards into a new zip file
-                    await renderedCards.current.render(render.folder(state.groups[props.group].cards[card].name));
-                }
-
-                // Save the zip file
-                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].name);
-
-                // Return selection
-                state.setSelection(preselect);
-            } else if (props.type === SelectionType.Card) {
-                // Save the previous selection
-                const preselect = state.selection;
-
-                // Select and render the current card
-                state.select(props.group, props.card);
-
-                // Render and export the cards into a new zip file
-                const render = await renderedCards.current.render();
-
-                // Save the zip file
-                saveAs(await render.generateAsync({ type: "blob" }), state.groups[props.group].cards[props.card].name);
-
-                // Return selection
-                state.setSelection(preselect);
-            } else {
-                // Save the previous selection
-                const preselect = state.selection;
-
-                // Create zip file
-                const render = new JSZip();
-
-                for (let group = 0; group < state.groups.length; group++) {
-                    const groupFolder = render.folder(state.groups[group].name);
-
-                    for (let card = 0; card < state.groups[group].cards.length; card++) {
-                        // Select and render the current card
-                        state.select(group, card);
-
-                        // Render and export the cards into a new zip file
-                        await renderedCards.current.render(groupFolder.folder(state.groups[group].cards[card].name));
-                    }
-                }
-
-                // Save the zip file
-                saveAs(await render.generateAsync({ type: "blob" }), "workspace");
-
-                // Return selection
-                state.setSelection(preselect);
+        const printClick = (async ({ props }: IItemArgs) => {
+            if (renderedCards.current === null) {
+                return;
             }
 
-            setIsRendering(false);
+            // Render the cards
+            await renderedCards.current.print(props);
         }) as unknown as ItemHandler;
 
         return (
@@ -259,7 +204,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Separator />
                     <Item onClick={downloadClick}>Download Card</Item>
                     <Item onClick={renderClick}>Render Card</Item>
-                    <Item disabled={true}>Print Card</Item>
+                    <Item onClick={printClick}>Print Card</Item>
                     <Separator />
                     <DangerItem onClick={deleteClick}>Delete</DangerItem>
                 </Menu>

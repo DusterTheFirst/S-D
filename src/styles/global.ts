@@ -15,6 +15,16 @@ const GlobalStyles = createGlobalStyle`
         width: 100%;
         height: 100%;
     }
+
+    @font-face {
+        font-family: "Modesto-Expd";
+        src: url("/fonts/Modesto-Expd.woff2");
+    }
+
+    @font-face {
+        font-family: "Modesto-Regular";
+        src: url("/fonts/Modesto-Regular.woff2");
+    }
 `;
 
 export default GlobalStyles;
