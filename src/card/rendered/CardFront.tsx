@@ -8,11 +8,14 @@ import { GlobalStateContext, SelectionType } from "../../state";
 import { CardText, ExpandedText, RenderedCard } from "../../styles/renderedCard";
 import { bulletLists, ordinalSuffixOf } from "../../util/string";
 import { wordWrapSVG } from "../../util/wordWrap";
+import { FrontRenderedCallbackContext } from "./RenderedCards";
 import useEmbeddedFont from "./useEmbeddedFont";
 
 /** The front face of the card */
 const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
     const state = useContext(GlobalStateContext);
+
+    const rendered = useContext(FrontRenderedCallbackContext);
 
     // Refs to wrappable words
     const physComponentsRef = useRef<SVGTextElement>(null);
@@ -78,6 +81,8 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
             }
         }
 
+        rendered.current();
+
         return () => {
             if (physComp !== null) {
                 physComp.innerHTML = "";
@@ -91,6 +96,7 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
         };
     }, [
         card,
+        rendered,
         descriptionRef,
         extDescriptionRef,
         extDescriptionTitleRef,

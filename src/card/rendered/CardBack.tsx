@@ -3,17 +3,22 @@
  */
 
 import { useObserver } from "mobx-react-lite";
-import React, { forwardRef, useContext, useMemo } from "react";
+import React, { forwardRef, useContext, useLayoutEffect, useMemo } from "react";
 import { IsRenderingContext } from "../../App";
 import { GlobalStateContext, SelectionType } from "../../state";
 import { RenderedCard } from "../../styles/renderedCard";
 import { hashCode } from "../../util/string";
+import { BackRenderedCallbackContext } from "./RenderedCards";
 import useEmbeddedFont from "./useEmbeddedFont";
 
 /** The more dynamic part of the card back */
 function CardBackDyn() {
     const state = useContext(GlobalStateContext);
     const [isRendering] = useContext(IsRenderingContext);
+
+    const rendered = useContext(BackRenderedCallbackContext);
+
+    useLayoutEffect(rendered.current);
 
     const card = useObserver(() =>
         state.selection.type === SelectionType.Card
