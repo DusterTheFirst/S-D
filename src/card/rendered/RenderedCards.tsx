@@ -13,81 +13,27 @@ import { dataFileReaderAsync } from "../../util/file";
 import { canvasToBlobAsync, createImageAsync } from "../../util/image";
 import CardBack from "./CardBack";
 import CardFront from "./CardFront";
+import { doubleSideOrdering, foldableOrdering } from "./cardOrdering";
 
 /** The width of the resulting rasters */
 const RASTER_WIDTH = 1500;
 /** The height of the resulting rasters */
 const RASTER_HEIGHT = 2100;
 
-/** The width of a card tile for a double sided layout */
-const CARD_TILE_WIDTH = 612 / 3;
-/** The height of a card tile for a double sided layout */
-const CARD_TILE_HEIGHT = 792 / 3;
-
-/** The printed card width */
-const PRINT_CARD_WIDTH = (CARD_TILE_HEIGHT / 70) * 50;
-/** The printed card height */
-const PRINT_CARD_HEIGHT = CARD_TILE_HEIGHT;
-
 /** The ref exposed by thr Rendered Cards component */
 export interface IRenderedCardsRef {
     /** Render/Rasterize the card */
     render(selection: Selection): Promise<void>;
-    /** Print the card */
+    /** Print the card in a double sided arrangement */
     printDoubleSided(selection: Selection): Promise<void>;
+    /** Print the card in a foldable arrangement */
+    printFoldable(selection: Selection): Promise<void>;
 }
 
 /** The rendered callback context for the front of the card */
 export const FrontRenderedCallbackContext = createContext<MutableRefObject<() => void>>({ current: () => void 0 });
 /** The rendered callback context for the back of the card */
 export const BackRenderedCallbackContext = createContext<MutableRefObject<() => void>>({ current: () => void 0 });
-
-/** Method to order the cards in a double sided arrangement */
-function doubleSideOrdering(cards: Array<[string, string]>) {
-    return cards.map<[Content, Content]>(([front, back], i) => {
-        // Calculate the Y of the card
-        const cardY = (Math.floor(i / 3) * CARD_TILE_HEIGHT) % (CARD_TILE_HEIGHT * 3);
-        // Calculate the X of the card
-        const cardX = (i % 3) * CARD_TILE_WIDTH;
-
-        return [
-            {
-                // Set the front's position
-                absolutePosition: {
-                    x: cardX,
-                    y: cardY
-                },
-                height: CARD_TILE_HEIGHT,
-                svg: front,
-                width: CARD_TILE_WIDTH,
-            },
-            {
-                // Set the cards position, reversing direction
-                absolutePosition: {
-                    x: (CARD_TILE_WIDTH * 2) - cardX,
-                    y: cardY
-                },
-                height: CARD_TILE_HEIGHT,
-                // Add a page break before the card if first and after the card if last
-                pageBreak:
-                    cardY === 0 && cardX === 0
-                        ? "before"
-                        : cardY === CARD_TILE_HEIGHT * 2 && cardX === CARD_TILE_WIDTH * 2
-                            ? "after"
-                            : undefined,
-                svg: back,
-                width: CARD_TILE_WIDTH
-            },
-        ];
-    }).reduce<[Content, Content[], Content[]]>(([done, fronts, backs], [front, back], i) => {
-        // Interweave the fronts and backs for a double sided print
-        if (i % 9 === 0) {
-            return [[...done, ...fronts, ...backs], [front], [back]];
-        } else {
-            return [done, [...fronts, front], [...backs, back]];
-        }
-    }, [[], [], []]);
-}
 
 /** The rendered cards container and manager */
 const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
@@ -206,85 +152,71 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
         return zip;
     }, [getCurrentSelectedSVGs]);
 
-    useImperativeHandle<IRenderedCardsRef, IRenderedCardsRef>(ref, () => ({
-        printDoubleSided: async (selection: Selection) => {
-            // Move into rendering mode
-            setIsRendering(true);
+    const print = useCallback((ordering: (cards: Array<[string, string]>) => Content) => async (selection: Selection) => {
+        // Move into rendering mode
+        setIsRendering(true);
 
-            // Save the previous selection
-            const preselect = state.selection;
+        // Save the previous selection
+        const preselect = state.selection;
 
-            if (selection.type === SelectionType.Group) {
-                const svgs: Array<[string, string]> = [];
+        if (selection.type === SelectionType.Group) {
+            const svgs: Array<[string, string]> = [];
 
-                for (let card = 0; card < state.groups[selection.group].cards.length; card++) {
+            for (let card = 0; card < state.groups[selection.group].cards.length; card++) {
+                // Select and render the current card
+                await selectAsync(selection.group, card);
+
+                const csvgs = getCurrentSelectedSVGs();
+
+                svgs.push(csvgs);
+            }
+
+            pdfMake.createPdf({
+                content: ordering(svgs),
+                pageMargins: 0,
+                pageSize: "LETTER",
+            }).print();
+        } else if (selection.type === SelectionType.Card) {
+            // Select and render the current card
+            await selectAsync(selection.group, selection.card);
+
+            // Make a simple pdf of one side of the card on each page
+            pdfMake.createPdf({
+                content: ordering([getCurrentSelectedSVGs()]),
+                pageMargins: 0,
+                pageSize: "LETTER",
+            }).print();
+        } else {
+            const svgs: Array<[string, string]> = [];
+
+            for (let group = 0; group < state.groups.length; group++) {
+                for (let card = 0; card < state.groups[group].cards.length; card++) {
                     // Select and render the current card
-                    await selectAsync(selection.group, card);
+                    await selectAsync(group, card);
 
                     const csvgs = getCurrentSelectedSVGs();
 
                     svgs.push(csvgs);
                 }
-
-                pdfMake.createPdf({
-                    content: doubleSideOrdering(svgs),
-                    pageMargins: 0,
-                    pageSize: "LETTER",
-                }).print();
-            } else if (selection.type === SelectionType.Card) {
-                // Select and render the current card
-                await selectAsync(selection.group, selection.card);
-
-                const [svgFront, svgBack] = getCurrentSelectedSVGs();
-
-                // Make a simple pdf of one side of the card on each page
-                pdfMake.createPdf({
-                    content: [
-                        {
-                            height: PRINT_CARD_HEIGHT,
-                            svg: svgFront,
-                            width: PRINT_CARD_WIDTH
-                        },
-                        {
-                            height: PRINT_CARD_HEIGHT,
-                            pageBreak: "before",
-                            style: {
-                                alignment: "right"
-                            },
-                            svg: svgBack,
-                            width: PRINT_CARD_WIDTH,
-                        }
-                    ],
-                    pageMargins: 0,
-                    pageSize: "LETTER",
-                }).print();
-            } else {
-                const svgs: Array<[string, string]> = [];
-
-                for (let group = 0; group < state.groups.length; group++) {
-                    for (let card = 0; card < state.groups[group].cards.length; card++) {
-                        // Select and render the current card
-                        await selectAsync(group, card);
-
-                        const csvgs = getCurrentSelectedSVGs();
-
-                        svgs.push(csvgs);
-                    }
-                }
-
-                pdfMake.createPdf({
-                    content: doubleSideOrdering(svgs),
-                    pageMargins: 0,
-                    pageSize: "LETTER",
-                }).print();
             }
 
-            // Return selection
-            state.setSelection(preselect);
+            pdfMake.createPdf({
+                content: ordering(svgs),
+                pageMargins: 0,
+                pageSize: "LETTER",
+            }).print();
+        }
 
-            // Leave rendering mode
-            setIsRendering(false);
-        },
+        // Return selection
+        state.setSelection(preselect);
+
+        // Leave rendering mode
+        setIsRendering(false);
+    }, [getCurrentSelectedSVGs, selectAsync, setIsRendering, state]);
+
+    useImperativeHandle<IRenderedCardsRef, IRenderedCardsRef>(ref, () => ({
+        printDoubleSided: print(doubleSideOrdering),
+        printFoldable: print(foldableOrdering),
         render: async (selection: Selection) => {
             // Move into rendering mode
             setIsRendering(true);

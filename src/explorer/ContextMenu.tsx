@@ -171,6 +171,15 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
             await renderedCards.current.printDoubleSided(props);
         }) as unknown as ItemHandler;
 
+        const printFoldableClick = (async ({ props }: IItemArgs) => {
+            if (renderedCards.current === null) {
+                return;
+            }
+
+            // Render the cards
+            await renderedCards.current.printFoldable(props);
+        }) as unknown as ItemHandler;
+
         return (
             <>
                 <Menu id="none-contextmenu">
@@ -181,7 +190,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item onClick={downloadClick}>Download All</Item>
                     <Item onClick={renderClick}>Render All</Item>
                     <Item onClick={printDoubleSidedClick}>Print All (Double Sided)</Item>
-                    <Item disabled={true}>Print All (Foldable)</Item>
+                    <Item onClick={printFoldableClick}>Print All (Foldable)</Item>
                 </Menu>
                 <Menu id="group-contextmenu">
                     <Item onClick={editClick} disabled={editDisable}>Edit</Item>
@@ -194,7 +203,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item onClick={downloadClick}>Download Group</Item>
                     <Item onClick={renderClick}>Render Group</Item>
                     <Item onClick={printDoubleSidedClick}>Print Group (Double Sided)</Item>
-                    <Item disabled={true}>Print Group (Foldable)</Item>
+                    <Item onClick={printFoldableClick}>Print Group (Foldable)</Item>
                     <Separator />
                     <DangerItem onClick={deleteClick}>Delete</DangerItem>
                 </Menu>
@@ -207,7 +216,7 @@ export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
                     <Item onClick={downloadClick}>Download Card</Item>
                     <Item onClick={renderClick}>Render Card</Item>
                     <Item onClick={printDoubleSidedClick}>Print Card (Double Sided)</Item>
-                    <Item disabled={true}>Print Card (Foldable)</Item>
+                    <Item onClick={printFoldableClick}>Print Card (Foldable)</Item>
                     <Separator />
                     <DangerItem onClick={deleteClick}>Delete</DangerItem>
                 </Menu>
