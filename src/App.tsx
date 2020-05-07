@@ -20,7 +20,8 @@ import UpdateModal from "./UpdateModal";
 /**
  * TODO:
  * - Better layout
- * - Printing (double sided)
+ * - Stat sheets
+ * - Margins on printed PDF
  */
 
 /** The context for the rendered cards component */
