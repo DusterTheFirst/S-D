@@ -5,7 +5,7 @@
 import { useObserver } from "mobx-react-lite";
 import React, { forwardRef, useContext, useEffect, useRef } from "react";
 import { GlobalStateContext, SelectionType } from "../../state";
-import { CardText, ExpandedText, RenderedCard } from "../../styles/renderedCard";
+import { CardText, CardTextInverted, ExpandedText, RenderedCard } from "../../styles/renderedCard";
 import { bulletLists, ordinalSuffixOf } from "../../util/string";
 import { wordWrapSVG } from "../../util/wordWrap";
 import { FrontRenderedCallbackContext } from "./RenderedCards";
@@ -40,7 +40,7 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
         if (fonts === null) {
             return undefined;
         }
-        // Collecctive hight of blocks
+        // Collective hight of blocks
         let currHeight = 0;
 
         // Aliases for refs
@@ -110,8 +110,8 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
         const duration = durationConc ? card.duration?.replace(/^concentration(,)? /i, "") : card.duration;
         const durationCap = `${duration?.charAt(0).toUpperCase() ?? ""}${duration?.slice(1) ?? ""}`;
 
-        const cardlevel = parseInt(card.level !== undefined ? card.level : "0", 10);
-        const cardType = !isNaN(cardlevel) ? cardlevel === 0 ? `${card.type} cantrip` : `${ordinalSuffixOf(cardlevel)} level ${card.type}` : undefined;
+        const cardLevel = parseInt(card.level !== undefined ? card.level : "0", 10);
+        const cardType = !isNaN(cardLevel) ? cardLevel === 0 ? `${card.type} cantrip` : `${ordinalSuffixOf(cardLevel)} level ${card.type}` : undefined;
 
         const color = card.color ?? "#000000";
 
@@ -132,7 +132,7 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
                 <line x1="25" y1="9" x2="25" y2="23" stroke={color} strokeWidth=".3" />
 
                 {/* Title */}
-                <ExpandedText fontSize="4" x="25" y="6.75">{card.name}</ExpandedText>
+                <ExpandedText fill={color} fontSize="4" x="25" y="6.75">{card.name}</ExpandedText>
 
                 {/* Casting Time */}
                 <ExpandedText fill={color} x="13.5" y="12">CASTING TIME</ExpandedText>
@@ -157,20 +157,23 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
 
                 {/* Physical Components */}
                 <rect width="50" height="3.5" y="23" fill={color} ref={physComponentsBackgroundRef} />
-                <CardText x="3" y="25.6" ref={physComponentsRef} fill="#ffffff" textAnchor="right" />
+                <CardTextInverted x="3" y="25.6" ref={physComponentsRef} fill="#ffffff" textAnchor="right" />
+
                 {/* Description */}
                 <CardText x="3" y="25.5" ref={descriptionRef} textAnchor="right" />
+
                 {/* Extended Description */}
                 <g ref={extDescriptionTitleRef}>
                     <rect width="50" height="3.5" y="-3" fill={color} />
-                    <CardText fontWeight="bold" letterSpacing=".1" y="-.4" x="25" fill="#ffffff">At Higher Levels</CardText>
+                    <ExpandedText letterSpacing=".1" y="-.4" x="25" fill="#ffffff">At Higher Levels</ExpandedText>
                 </g>
                 <CardText x="3" ref={extDescriptionRef} textAnchor="right" />
 
                 {/* Card class */}
                 <ExpandedText fill="white" x="2.5" y="68.5" textAnchor="left">{card.clazz}</ExpandedText>
+
                 {/* Card type */}
-                <CardText fill="white" x="48" y="68.5" textAnchor="end">{cardType}</CardText>
+                <CardTextInverted fill="white" x="48" y="68.5" textAnchor="end">{cardType}</CardTextInverted>
             </RenderedCard>
         );
     });

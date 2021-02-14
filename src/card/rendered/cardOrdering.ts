@@ -4,10 +4,18 @@
 
 import { Content } from "pdfmake/interfaces";
 
+/** The margin, in points, of the page (https://stackoverflow.com/a/3513476) */
+const PRINT_PAGE_MARGIN = 0.25 * 72; // 1 inch = 72 pts
+
+/** The width, in points, of a letter page */
+const LETTER_PAPER_WIDTH = 612;
+/** The height, in points, of a letter page */
+const LETTER_PAPER_HEIGHT = 792;
+
 /** The width of a card tile for a double sided layout */
-const CARD_TILE_WIDTH = 612 / 3;
+const CARD_TILE_WIDTH = (LETTER_PAPER_WIDTH - (PRINT_PAGE_MARGIN * 2)) / 3;
 /** The height of a card tile for a double sided layout */
-const CARD_TILE_HEIGHT = 792 / 3;
+const CARD_TILE_HEIGHT = (LETTER_PAPER_HEIGHT - (PRINT_PAGE_MARGIN * 2)) / 3;
 
 /** The printed card width */
 const PRINT_CARD_WIDTH = (CARD_TILE_HEIGHT / 70) * 50;
@@ -17,10 +25,13 @@ const PRINT_CARD_HEIGHT = CARD_TILE_HEIGHT;
 /** Method to order the cards in a double sided arrangement */
 export function doubleSideOrdering(cards: Array<[string, string]>) {
     return cards.map<[Content, Content]>(([front, back], i) => {
+        const cardXIdx = i % 3;
+        const cardYIdx = Math.floor(i / 3) % 3;
+
         // Calculate the Y of the card
-        const cardY = (Math.floor(i / 3) * CARD_TILE_HEIGHT) % (CARD_TILE_HEIGHT * 3);
+        const cardY = (cardYIdx * CARD_TILE_HEIGHT) + PRINT_PAGE_MARGIN;
         // Calculate the X of the card
-        const cardX = (i % 3) * CARD_TILE_WIDTH;
+        const cardX = (cardXIdx * CARD_TILE_WIDTH) + PRINT_PAGE_MARGIN;
 
         return [
             {
@@ -40,18 +51,19 @@ export function doubleSideOrdering(cards: Array<[string, string]>) {
                     y: cardY
                 },
                 height: CARD_TILE_HEIGHT,
-                // Add a page break before the card if first and after the card if last
+                // Add a page break before the card if first and after the card if last but not if it is the last card
                 pageBreak:
-                    cardY === 0 && cardX === 0
-                        ? "before"
-                        : cardY === CARD_TILE_HEIGHT * 2 && cardX === CARD_TILE_WIDTH * 2
-                            ? "after"
-                            : undefined,
+                    i === cards.length - 1 ? undefined :
+                        cardYIdx === 0 && cardXIdx === 0
+                            ? "before"
+                            : cardYIdx === 2 && cardXIdx === 2
+                                ? "after"
+                                : undefined,
                 svg: back,
                 width: CARD_TILE_WIDTH
             },
         ];
-    }).reduce<[Content, Content[], Content[]]>(([done, fronts, backs], [front, back], i) => {
+    }).reduce<[Content[], Content[], Content[]]>(([done, fronts, backs], [front, back], i) => {
         // Interweave the fronts and backs for a double sided print
         if (i % 9 === 0) {
             return [[...done, ...fronts, ...backs], [front], [back]];
@@ -64,14 +76,16 @@ export function doubleSideOrdering(cards: Array<[string, string]>) {
 /** Method to order the cards in a foldable arrangement */
 export function foldableOrdering(cards: Array<[string, string]>) {
     return cards.map<[Content, Content]>(([front, back], i) => {
+        const cardYIdx = i % 3;
+
         // Calculate the Y of the card
-        const cardY = (i * PRINT_CARD_HEIGHT) % (PRINT_CARD_HEIGHT * 3);
+        const cardY = (cardYIdx * PRINT_CARD_HEIGHT) + PRINT_PAGE_MARGIN;
 
         return [
             {
                 // Set the front's position
                 absolutePosition: {
-                    x: 0,
+                    x: PRINT_PAGE_MARGIN,
                     y: cardY
                 },
                 height: PRINT_CARD_HEIGHT,
@@ -81,12 +95,12 @@ export function foldableOrdering(cards: Array<[string, string]>) {
             {
                 // Set the cards position
                 absolutePosition: {
-                    x: PRINT_CARD_WIDTH,
+                    x: PRINT_CARD_WIDTH + PRINT_PAGE_MARGIN,
                     y: cardY
                 },
                 height: PRINT_CARD_HEIGHT,
                 pageBreak:
-                    cardY === PRINT_CARD_HEIGHT * 2 && i !== cards.length - 1
+                    cardYIdx === 2 && i !== cards.length - 1
                         ? "after"
                         : undefined,
                 svg: back,

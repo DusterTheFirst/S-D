@@ -47,9 +47,9 @@ function CardBackDyn() {
                 <polyline points="5.25,35 25,5.25 45,34.75 25,64.75 5.25,35" fill="transparent" stroke={color} strokeWidth=".5" />
 
                 {/* Card level top right */}
-                <text fontSize="10" fontWeight="bold" fill={color} x="38" y="15" textAnchor="middle">{card.level}</text>
+                <text fontSize="10" fill={color} x="38" y="15" textAnchor="middle">{card.level}</text>
                 {/* Card level bottom left */}
-                <text fontSize="10" fontWeight="bold" fill={color} x="12" y="62" textAnchor="middle">{card.level}</text>
+                <text fontSize="10" fill={color} x="12" y="62" textAnchor="middle">{card.level}</text>
 
                 {/* Card image */}
                 {isRendering ? <image href={card.image} width="25" height="25" x="12.5" y="22.5" /> : <use href={`#${hash}`} />}

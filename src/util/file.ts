@@ -23,7 +23,7 @@ export async function textFileReaderAsync(file: Blob) {
     });
 }
 
-/** Helper that can create a file reaer that is async and reads data */
+/** Helper that can create a file reader that is async and reads data */
 export async function dataFileReaderAsync(file: Blob) {
     return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -62,7 +62,7 @@ export function downloadSelection(file: DownloadSelection, filename: string) {
     saveAs(new Blob([JSON.stringify(file)], { type: "application/json" }), filename);
 }
 
-/** Helper to laod a file */
+/** Helper to load a file */
 export function loadSelection(file: DownloadSelection, state: GlobalState) {
     if (file.type === SelectionType.None) {
         for (const group of file.data) {

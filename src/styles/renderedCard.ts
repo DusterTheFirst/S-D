@@ -21,9 +21,15 @@ export const RenderedCard = styled.svg.attrs({
 
 /** Text for use on a card */
 export const CardText = styled.text.attrs(props => ({
+    fontFamily: props.fontFamily ?? "Open Sans",
     fontSize: props.fontSize ?? 2,
     textAnchor: props.textAnchor ?? "middle"
 }))``;
+
+/** Text for use on a card on a colored background */
+export const CardTextInverted = styled(CardText).attrs({
+    fontFamily: "Open Sans SemiBold"
+})``;
 
 /** Text with the expanded font */
 export const ExpandedText = styled(CardText).attrs({

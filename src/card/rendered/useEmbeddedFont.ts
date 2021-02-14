@@ -7,14 +7,20 @@ import { dataFileReaderAsync } from "../../util/file";
 
 /** Style section for the svgs */
 export default function useEmbeddedFont() {
-    const [fonts, setFonts] = useState<[string, string]>();
+    const [fonts, setFonts] = useState<[string, string, string, string]>();
 
     useEffect(() => {
         Promise.all([
-            fetch("/fonts/Modesto-Expd.woff2")
+            fetch("/fonts/Modesto-Expd.ttf")
                 .then(x => x.blob())
                 .then(dataFileReaderAsync),
-            fetch("/fonts/Modesto-Regular.woff2")
+            fetch("/fonts/Modesto-Regular.ttf")
+                .then(x => x.blob())
+                .then(dataFileReaderAsync),
+            fetch("/fonts/OpenSans-Regular.ttf")
+                .then(x => x.blob())
+                .then(dataFileReaderAsync),
+            fetch("/fonts/OpenSans-SemiBold.ttf")
                 .then(x => x.blob())
                 .then(dataFileReaderAsync)
         ]).then(setFonts)
@@ -25,7 +31,7 @@ export default function useEmbeddedFont() {
         return null;
     }
 
-    const [ModestoRegular, ModestoExpd] = fonts;
+    const [ModestoRegular, ModestoExpd, OpenSansRegular, OpenSansSemiBold] = fonts;
 
     return `
         @font-face {
@@ -36,6 +42,16 @@ export default function useEmbeddedFont() {
         @font-face {
             font-family: "Modesto-Regular";
             src: url("${ModestoExpd}");
+        }
+
+        @font-face {
+            font-family: "Open Sans";
+            src: url("${OpenSansRegular}");
+        }
+
+        @font-face {
+            font-family: "Open Sans SemiBold";
+            src: url("${OpenSansSemiBold}");
         }
     `;
 }

@@ -1,4 +1,5 @@
 # [S&D Card Creation Tool](https://sd.dusterthefirst.com)
+
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dusterthefirst/sd/Build%20and%20Deploy)
 ![GitHub](https://img.shields.io/github/license/dusterthefirst/sd)
 ![Website](https://img.shields.io/website?down_color=lightgrey&down_message=down&up_color=green&up_message=online&url=https%3A%2F%2Fsd.dusterthefirst.com)
@@ -8,6 +9,7 @@
 A WYSIWYG tool to create your own D&D style spell cards for use in tabletop games
 
 ## License
+
     A tool to create your own D&D style spell cards for use in tabletop games
     Copyright (C) 2018-2020  Zachary Kohnen
 

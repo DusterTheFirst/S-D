@@ -49,19 +49,28 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
     useEffect(() => {
         Promise.all([
             fetch("/fonts/Modesto-Expd.ttf").then(x => x.blob()).then(dataFileReaderAsync),
-            fetch("/fonts/Modesto-Regular.ttf").then(x => x.blob()).then(dataFileReaderAsync)
-        ]).then(([expd, regular]) => {
+            fetch("/fonts/Modesto-Regular.ttf").then(x => x.blob()).then(dataFileReaderAsync),
+            fetch("/fonts/OpenSans-Regular.ttf").then(x => x.blob()).then(dataFileReaderAsync),
+            fetch("/fonts/OpenSans-SemiBold.ttf").then(x => x.blob()).then(dataFileReaderAsync)
+        ]).then(([expd, regular, sans, sansSemi]) => {
             pdfMake.vfs = {
                 "Modesto-Expd.ttf": expd.substring(expd.lastIndexOf(",") + 1),
-                "Modesto-Regular.ttf": regular.substring(regular.lastIndexOf(",") + 1)
+                "Modesto-Regular.ttf": regular.substring(regular.lastIndexOf(",") + 1),
+                "OpenSans-Regular.ttf": sans.substring(sans.lastIndexOf(",") + 1),
+                "OpenSans-SemiBold.ttf": sansSemi.substring(sansSemi.lastIndexOf(",") + 1)
             };
             pdfMake.fonts = {
                 "Modesto-Expd": {
                     normal: "Modesto-Expd.ttf"
                 },
                 "Modesto-Regular": {
-                    bold: "Modesto-Regular.ttf",
                     normal: "Modesto-Regular.ttf"
+                },
+                "Open Sans": {
+                    normal: "OpenSans-Regular.ttf"
+                },
+                "Open Sans SemiBold": {
+                    normal: "OpenSans-SemiBold.ttf",
                 }
             };
         }).catch(e => console.error(e));
@@ -72,7 +81,7 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
             frontRenderedCallback.current = () => {
                 frontRenderedCallback.current = () => void 0;
                 backRenderedCallback.current = () => void 0;
-                resolve();
+                resolve(undefined);
             };
 
             state.select(...args);
@@ -81,10 +90,10 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
             backRenderedCallback.current = () => {
                 frontRenderedCallback.current = () => void 0;
                 backRenderedCallback.current = () => void 0;
-                resolve();
+                resolve(undefined);
             };
         }),
-        new Promise((resolve) => setTimeout(resolve, 1000))
+        new Promise((resolve) => setTimeout(() => resolve(undefined), 1000))
     ]), [state, frontRenderedCallback, backRenderedCallback]);
 
     const getCurrentSelectedSVGs = useCallback((): [string, string] => {
@@ -166,9 +175,9 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
                 // Select and render the current card
                 await selectAsync(selection.group, card);
 
-                const csvgs = getCurrentSelectedSVGs();
+                const currentSvgs = getCurrentSelectedSVGs();
 
-                svgs.push(csvgs);
+                svgs.push(currentSvgs);
             }
 
             pdfMake.createPdf({
@@ -194,9 +203,9 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
                     // Select and render the current card
                     await selectAsync(group, card);
 
-                    const csvgs = getCurrentSelectedSVGs();
+                    const currentSvgs = getCurrentSelectedSVGs();
 
-                    svgs.push(csvgs);
+                    svgs.push(currentSvgs);
                 }
             }
 
@@ -228,16 +237,22 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
                 // Create zip file
                 const zip = new JSZip();
 
-                for (let card = 0; card < state.groups[selection.group].cards.length; card++) {
+                const cardCount = state.groups[selection.group].cards.length;
+                const cardCountWidth = cardCount.toString(10).length;
+                for (let card = 0; card < cardCount; card++) {
                     // Select and render the current card
                     await selectAsync(selection.group, card);
 
+                    // Safe to assert as non null since the card # is used as a uuid
+                    // tslint:disable-next-line: no-non-null-assertion
+                    const folder = zip.folder(`${card.toString(10).padStart(cardCountWidth, "0")}-${state.groups[selection.group].cards[card].name}`)!;
+
                     // Render and export the cards into a new zip file
-                    await renderCurrentSelection(zip.folder(state.groups[selection.group].cards[card].name));
+                    await renderCurrentSelection(folder);
                 }
 
                 // Save the zip file
-                saveAs(await zip.generateAsync({ type: "blob" }), state.groups[selection.group].name);
+                saveAs(await zip.generateAsync({ type: "blob" }), `${state.groups[selection.group].name}.zip`);
             } else if (selection.type === SelectionType.Card) {
                 // Select and render the current card
                 await selectAsync(selection.group, selection.card);
@@ -246,25 +261,35 @@ const RenderedCards = forwardRef<IRenderedCardsRef>((_, ref) => {
                 const zip = await renderCurrentSelection();
 
                 // Save the zip file
-                saveAs(await zip.generateAsync({ type: "blob" }), state.groups[selection.group].cards[selection.card].name);
+                saveAs(await zip.generateAsync({ type: "blob" }), `${state.groups[selection.group].cards[selection.card].name}.zip`);
             } else {
                 // Create zip file
                 const zip = new JSZip();
 
-                for (let group = 0; group < state.groups.length; group++) {
-                    const groupFolder = zip.folder(state.groups[group].name);
+                const groupCount = state.groups.length;
+                const groupCountWidth = groupCount.toString(10).length;
+                for (let group = 0; group < groupCount; group++) {
+                    // Safe to assert as non null since the card # is used as a uuid
+                    // tslint:disable-next-line: no-non-null-assertion
+                    const groupFolder = zip.folder(`${group.toString(10).padStart(groupCountWidth, "0")}-${state.groups[group].name}`)!;
 
-                    for (let card = 0; card < state.groups[group].cards.length; card++) {
+                    const cardCount = state.groups[group].cards.length;
+                    const cardCountWidth = cardCount.toString(10).length;
+                    for (let card = 0; card < cardCount; card++) {
                         // Select and render the current card
                         await selectAsync(group, card);
 
+                        // Safe to assert as non null since the card # is used as a uuid
+                        // tslint:disable-next-line: no-non-null-assertion
+                        const folder = groupFolder.folder(`${card.toString(10).padStart(cardCountWidth, "0")}-${state.groups[group].cards[card].name}`)!;
+
                         // Render and export the cards into a new zip file
-                        await renderCurrentSelection(groupFolder.folder(state.groups[group].cards[card].name));
+                        await renderCurrentSelection(folder);
                     }
                 }
 
                 // Save the zip file
-                saveAs(await zip.generateAsync({ type: "blob" }), "workspace");
+                saveAs(await zip.generateAsync({ type: "blob" }), "workspace.zip");
             }
 
             // Return selection

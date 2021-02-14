@@ -18,12 +18,22 @@ const GlobalStyles = createGlobalStyle`
 
     @font-face {
         font-family: "Modesto-Expd";
-        src: url("/fonts/Modesto-Expd.woff2");
+        src: url("/fonts/Modesto-Expd.ttf");
     }
 
     @font-face {
         font-family: "Modesto-Regular";
-        src: url("/fonts/Modesto-Regular.woff2");
+        src: url("/fonts/Modesto-Regular.ttf");
+    }
+
+    @font-face {
+        font-family: "Open Sans";
+        src: url("/fonts/OpenSans-Regular.ttf");
+    }
+
+    @font-face {
+        font-family: "Open Sans SemiBold";
+        src: url("/fonts/OpenSans-SemiBold.ttf");
     }
 `;
 
