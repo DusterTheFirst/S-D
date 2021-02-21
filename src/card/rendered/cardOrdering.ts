@@ -5,7 +5,7 @@
 import { Content } from "pdfmake/interfaces";
 
 /** The margin, in points, of the page (https://stackoverflow.com/a/3513476) */
-const PRINT_PAGE_MARGIN = 0.25 * 72; // 1 inch = 72 pts
+const PRINT_PAGE_MARGIN = 0.15 * 72; // 1 inch = 72 pts
 
 /** The width, in points, of a letter page */
 const LETTER_PAPER_WIDTH = 612;
@@ -47,7 +47,7 @@ export function doubleSideOrdering(cards: Array<[string, string]>) {
             {
                 // Set the cards position, reversing direction
                 absolutePosition: {
-                    x: (CARD_TILE_WIDTH * 2) - cardX,
+                    x: (CARD_TILE_WIDTH * 2) - cardX + PRINT_PAGE_MARGIN * 2,
                     y: cardY
                 },
                 height: CARD_TILE_HEIGHT,
