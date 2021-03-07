@@ -6,7 +6,7 @@ import React from "react";
 import ReactModal from "react-modal";
 import { ModalContainer, ModalDangerEmph, ModalDesc, ModalDialog, ModalStyles } from "./styles/modal";
 
-/** The props to the rndering modal */
+/** The props to the rendering modal */
 interface IRenderingModalProps {
     /** If the modal should show */
     show: boolean;

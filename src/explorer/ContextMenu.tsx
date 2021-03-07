@@ -14,7 +14,7 @@ import { downloadSelection } from "../util/file";
 import { IItemArgs, ItemHandler } from "./Explorer";
 
 /** Props to the better menu provider component */
-interface IBMPProps {
+interface IBetterMenuProviderProps {
     /** The id of the context menu */
     id: string;
     /** The selection that the menu should act upon */
@@ -22,7 +22,7 @@ interface IBMPProps {
 }
 
 /** A better menu provider */
-export function BetterMenuProvider({ id, children, selection }: PropsWithChildren<IBMPProps>) {
+export function BetterMenuProvider({ id, children, selection }: PropsWithChildren<IBetterMenuProviderProps>) {
     const rightClick = (event: MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
@@ -48,13 +48,13 @@ export function BetterMenuProvider({ id, children, selection }: PropsWithChildre
 }
 
 /** Props for the Explorer context menus */
-interface IECMProps {
+interface IExplorerContextMenusProps {
     /** State changer for delete selection */
     setDeleteSelection(val: Selection): void;
 }
 
 /** The context menus for the explorer */
-export function ExplorerContextMenus({ setDeleteSelection }: IECMProps) {
+export function ExplorerContextMenus({ setDeleteSelection }: IExplorerContextMenusProps) {
     const state = useContext(GlobalStateContext);
     const renderedCards = useContext(RenderedCardsContext);
 

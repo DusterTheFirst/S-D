@@ -7,10 +7,10 @@ export function wordWrapSVG(text: string, width: number, outputElement: SVGTextE
     return text.replace("\r", "").split("\n").map((x, i) => wordWrapOneLineSVG(x, width, outputElement, i !== 0)).reduce((a, b) => a + b);
 }
 
-/** Helper Function to wrap one continous line of text in an svg */
+/** Helper Function to wrap one continuos line of text in an svg */
 function wordWrapOneLineSVG(text: string, width: number, outputElement: SVGTextElement, initialOffset = false) {
     const words = text.split(" ");
-    let elems = 0;
+    let elementCount = 0;
 
     let tspanElement = document.createElementNS("http://www.w3.org/2000/svg", "tspan");   // Create first tspan element
     let textNode = document.createTextNode(words[0]);           // Create text in tspan element
@@ -19,7 +19,7 @@ function wordWrapOneLineSVG(text: string, width: number, outputElement: SVGTextE
         tspanElement.setAttribute("x", outputElement.x.baseVal[0].valueAsString);
         tspanElement.setAttribute("dy", outputElement.attributes.getNamedItem("font-size")?.value ?? "");
 
-        elems++;
+        elementCount++;
     }
 
     tspanElement.appendChild(textNode);                     // Add tspan element to DOM
@@ -35,7 +35,7 @@ function wordWrapOneLineSVG(text: string, width: number, outputElement: SVGTextE
         if (tspanElement.firstChild === null || tspanElement.firstChild.textContent === null) {
             console.error("TSPAN element has no first child", tspanElement);
 
-            return elems * parseFloat(outputElement.attributes.getNamedItem("font-size")?.value ?? "0");
+            return elementCount * parseFloat(outputElement.attributes.getNamedItem("font-size")?.value ?? "0");
         }
 
         const len = tspanElement.firstChild?.textContent?.length;             // Find number of letters in string
@@ -52,9 +52,9 @@ function wordWrapOneLineSVG(text: string, width: number, outputElement: SVGTextE
             tspanElement.appendChild(textNode);
             outputElement.appendChild(tspanElement);
 
-            elems++;
+            elementCount++;
         }
     }
 
-    return elems * parseFloat(outputElement.attributes.getNamedItem("font-size")?.value ?? "0");
+    return elementCount * parseFloat(outputElement.attributes.getNamedItem("font-size")?.value ?? "0");
 }

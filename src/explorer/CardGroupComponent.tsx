@@ -50,7 +50,7 @@ export default function CardGroupComponent({ id, search }: IProps) {
                     </CardGroupName>
                 </CardGroupTitle>
                 <div hidden={collapsed}>
-                    <Observer>{() => <>{state.groups[id].cards.map((_, j) => <CardComponent key={j} id={j} groupid={id} search={search} />)}</>}</Observer>
+                    <Observer>{() => <>{state.groups[id].cards.map((_, j) => <CardComponent key={j} id={j} groupId={id} search={search} />)}</>}</Observer>
                 </div>
             </div>
         </BetterMenuProvider>

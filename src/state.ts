@@ -95,9 +95,9 @@ export class GlobalState {
 
     /** Move a group */
     @action
-    public moveGroup(oldpos: number, newpos: number) {
-        const [group] = this._groups.splice(oldpos, 1);
-        this._groups.splice(newpos, 0, group);
+    public moveGroup(oldPos: number, newPos: number) {
+        const [group] = this._groups.splice(oldPos, 1);
+        this._groups.splice(newPos, 0, group);
     }
 }
 

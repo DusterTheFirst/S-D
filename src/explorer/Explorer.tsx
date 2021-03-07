@@ -9,7 +9,7 @@ import React, { ChangeEvent, DragEvent, useContext, useState } from "react";
 import { MenuItemEventHandler, TriggerEvent } from "react-contexify/lib/types";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
-import { ExplorerAddButton, ExplorerContainer, ExplorerGroups, ExplorerHeader, ExplorerHighlight, ExplorerSearch, ExplorerSearchX, ExporerSearchInput } from "../styles/explorer";
+import { ExplorerAddButton, ExplorerContainer, ExplorerGroups, ExplorerHeader, ExplorerHighlight, ExplorerSearch, ExplorerSearchInput as ExporterSearchInput, ExplorerSearchX } from "../styles/explorer";
 import { DownloadSelection, loadSelection, textFileReaderAsync } from "../util/file";
 import useIsTop from "../util/useIsTop";
 import CardGroupComponent from "./CardGroupComponent";
@@ -17,9 +17,9 @@ import { BetterMenuProvider } from "./ContextMenu";
 
 /** Highlight the matches to the match string */
 export function highlightMatches(text?: string, match?: string) {
-    // Only spend time spliting if there is a match to look for
+    // Only spend time splitting if there is a match to look for
     if (match !== undefined && match !== "") {
-        // Split on higlight term and include term into parts, ignore case
+        // Split on highlight term and include term into parts, ignore case
         return text !== undefined && text !== "" ?
             text.split(new RegExp(`(${match.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")})`, "gi"))
                 .map((part, i) => (
@@ -29,10 +29,10 @@ export function highlightMatches(text?: string, match?: string) {
                             {part}
                         </ExplorerHighlight>
                     ) : (
-                            <span key={i}>
-                                {part}
-                            </span>
-                        )
+                        <span key={i}>
+                            {part}
+                        </span>
+                    )
                 )) : undefined;
     } else {
         return text;
@@ -77,7 +77,7 @@ export default function Explorer() {
 
                 loadSelection(JSON.parse(contents) as DownloadSelection, state);
             } else {
-                console.error(`Format "${file.type}" unrecognised`);
+                console.error(`Format "${file.type}" unrecognized`);
             }
         }
 
@@ -104,7 +104,7 @@ export default function Explorer() {
             {/* Header */}
             <ExplorerHeader isTop={isTop}>
                 <ExplorerSearch>
-                    <ExporerSearchInput short={search !== ""} value={search} onChange={updateSearch} />
+                    <ExporterSearchInput short={search !== ""} value={search} onChange={updateSearch} />
                     <ExplorerSearchX hidden={search === ""} onClick={clearSearch}>
                         <FontAwesomeIcon icon={faTimes} />
                     </ExplorerSearchX>

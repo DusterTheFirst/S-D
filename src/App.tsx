@@ -38,7 +38,7 @@ export default function App() {
     const cardsRef = useRef<IRenderedCardsRef>(null);
 
     // Updates
-    const [updateAvaliable, setUpdateAvaliable] = useState(false);
+    const [updateAvailable, setUpdateAvailable] = useState(false);
     const doUpdate = (update: boolean) => {
         if (update) {
             console.log("%cUser accepting update, reloading", "color: goldenrod");
@@ -48,7 +48,7 @@ export default function App() {
         }
 
         // Hide prompt
-        setUpdateAvaliable(false);
+        setUpdateAvailable(false);
     };
 
     useEffect(() => {
@@ -61,7 +61,7 @@ export default function App() {
         hydrate("state", state);
 
         // Setup service worker
-        register(setUpdateAvaliable);
+        register(setUpdateAvailable);
 
         // Disable context menu
         document.oncontextmenu = (e) => {
@@ -80,7 +80,7 @@ export default function App() {
                     <GlobalStyles />
                     <ContextMenuStyles />
 
-                    {/* The exporer view */}
+                    {/* The explorer view */}
                     <Explorer />
                     <ExplorerContextMenus setDeleteSelection={setDeleteSelection} />
                     <DeleteModal setDeleteSelection={setDeleteSelection} deleteSelection={deleteSelection} />
@@ -92,7 +92,7 @@ export default function App() {
                     <RenderedCards ref={cardsRef} />
 
                     {/* The update modal */}
-                    <UpdateModal doUpdate={doUpdate} show={updateAvaliable} />
+                    <UpdateModal doUpdate={doUpdate} show={updateAvailable} />
 
                     {/* The rendering modal */}
                     <RenderingModal show={isRendering} />

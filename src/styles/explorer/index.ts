@@ -38,7 +38,7 @@ export const ExplorerHeader = styled.div<IHeaderProps>`
     box-shadow: ${props => props.isTop ? "none" : "0px 10px 10px #000000"};
 `;
 
-/** The search bar for the explorere */
+/** The search bar for the explorer */
 export const ExplorerSearch = styled.div`
     display: inline-block;
     width: calc(100% - 60px);
@@ -59,7 +59,7 @@ interface IHeaderSearchInputProps {
 }
 
 /** The input in the explorer search */
-export const ExporerSearchInput = styled.input.attrs({
+export const ExplorerSearchInput = styled.input.attrs({
     type: "text"
 }) <IHeaderSearchInputProps>`
     &::-ms-clear {
@@ -126,13 +126,13 @@ export const ExplorerAddButton = styled.div`
     }
 `;
 
-/** The exporer groups section props */
+/** The explorer groups section props */
 interface IExplorerGroupsProps {
-    /** If there is smthn dragged over */
+    /** If there is something dragged over */
     dragOver: boolean;
 }
 
-/** The groupd section of the explorer */
+/** The groups section of the explorer */
 export const ExplorerGroups = styled.div<IExplorerGroupsProps>`
     grid-row: 2;
     user-select: none;

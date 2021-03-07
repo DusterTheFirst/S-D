@@ -19,7 +19,7 @@ export default interface ICard {
     /** The class of the card */
     clazz?: string;
     /** The level of the card */
-    level?: string;
+    level?: number;
     /** The type of the card */
     type?: string;
     /** The description of the card */

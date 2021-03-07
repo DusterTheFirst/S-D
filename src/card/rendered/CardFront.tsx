@@ -110,8 +110,7 @@ const CardFront = forwardRef<SVGSVGElement>((_, ref) => {
         const duration = durationConc ? card.duration?.replace(/^concentration(,)? /i, "") : card.duration;
         const durationCap = `${duration?.charAt(0).toUpperCase() ?? ""}${duration?.slice(1) ?? ""}`;
 
-        const cardLevel = parseInt(card.level !== undefined ? card.level : "0", 10);
-        const cardType = !isNaN(cardLevel) ? cardLevel === 0 ? `${card.type} cantrip` : `${ordinalSuffixOf(cardLevel)} level ${card.type}` : undefined;
+        const cardType = card.level === undefined ? card.type : card.level === 0 ? `${card.type} cantrip` : `${ordinalSuffixOf(card.level)} level ${card.type}`;
 
         const color = card.color ?? "#000000";
 

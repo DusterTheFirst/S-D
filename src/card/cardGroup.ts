@@ -6,7 +6,7 @@ import { action, observable } from "mobx";
 import { persist } from "mobx-persist";
 import ICard from "./card";
 
-/** The persistant data of a card group */
+/** The persistent data of a card group */
 export interface ICardGroupData {
     /** The name of the group */
     readonly name: string;
@@ -59,9 +59,9 @@ export default class CardGroup {
 
     /** Move a cards position */
     @action
-    public moveCard(oldpos: number, newpos: number): this {
-        const [card] = this._cards.splice(oldpos, 1);
-        this._cards.splice(newpos, 0, card);
+    public moveCard(oldPos: number, newPos: number): this {
+        const [card] = this._cards.splice(oldPos, 1);
+        this._cards.splice(newPos, 0, card);
 
         return this;
     }

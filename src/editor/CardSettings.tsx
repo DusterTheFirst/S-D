@@ -26,14 +26,15 @@ export default function CardSettings() {
         const placeholders = state.selection.type === SelectionType.Card ? state.groups[state.selection.group].defaults : undefined;
 
         /** Update the internal cache values of a text value */
-        const cardValueUpdater = (name: keyof ICard) => {
+        // tslint:disable-next-line: no-any
+        const cardValueUpdater = <N extends keyof ICard>(name: N, toStorage: (value?: string) => ICard[N] = (a) => a as any) => {
             return (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
                 event.persist();
 
                 if (state.selection.type === SelectionType.Card) {
-                    state.groups[state.selection.group].editCard(state.selection.card, name, event.currentTarget.value === "" && name !== "name" ? undefined : event.currentTarget.value);
+                    state.groups[state.selection.group].editCard(state.selection.card, name, toStorage(event.currentTarget.value === "" && name !== "name" ? undefined : event.currentTarget.value));
                 } else if (state.selection.type === SelectionType.Group) {
-                    state.groups[state.selection.group].editDefaults(name, event.currentTarget.value === "" ? undefined : event.currentTarget.value);
+                    state.groups[state.selection.group].editDefaults(name, toStorage(event.currentTarget.value === "" ? undefined : event.currentTarget.value));
                 }
             };
         };
@@ -118,7 +119,7 @@ export default function CardSettings() {
                 </EditorLabel>
                 <EditorLabel>
                     Level:
-                    <EditorInput type="number" min={0} max={99} value={cardSettings.level ?? ""} onChange={cardValueUpdater("level")} placeholder={placeholders?.level === undefined ? undefined : placeholders?.level?.toString()} />
+                    <EditorInput type="number" min={0} max={99} value={cardSettings.level ?? ""} onChange={cardValueUpdater("level", (s) => s === undefined ? undefined : parseInt(s, 10))} placeholder={placeholders?.level === undefined ? undefined : placeholders?.level?.toString()} />
                 </EditorLabel>
                 <EditorLabel>
                     Color:

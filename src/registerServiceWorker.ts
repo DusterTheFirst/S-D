@@ -24,7 +24,7 @@ const isLocalhost = Boolean(
 );
 
 /** Method to register the service worker */
-export default function register(setUpdateAvaliable: (is: boolean) => void) {
+export default function register(setUpdateAvailable: (is: boolean) => void) {
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
         // The URL constructor is available in all browsers that support SW.
         const publicUrl = new URL(
@@ -43,7 +43,7 @@ export default function register(setUpdateAvaliable: (is: boolean) => void) {
 
             if (isLocalhost) {
                 // This is running on localhost. Lets check if a service worker still exists or not.
-                checkValidServiceWorker(swUrl, setUpdateAvaliable);
+                checkValidServiceWorker(swUrl, setUpdateAvailable);
 
                 // Add some additional logging to localhost, pointing developers to the
                 // service worker/PWA documentation.
@@ -55,14 +55,14 @@ export default function register(setUpdateAvaliable: (is: boolean) => void) {
                 }).catch(e => console.error(e));
             } else {
                 // Is not local host. Just register service worker
-                registerValidSW(swUrl, setUpdateAvaliable);
+                registerValidSW(swUrl, setUpdateAvailable);
             }
         });
     }
 }
 
 /** Method to register a valid service worker */
-function registerValidSW(swUrl: string, setUpdateAvaliable: (is: boolean) => void) {
+function registerValidSW(swUrl: string, setUpdateAvailable: (is: boolean) => void) {
     navigator.serviceWorker
         .register(swUrl)
         .then(registration => {
@@ -77,9 +77,9 @@ function registerValidSW(swUrl: string, setUpdateAvaliable: (is: boolean) => voi
                                 // It's the perfect time to display a 'New content is
                                 // available; please refresh.' message in your web app.
                                 console.log("New content is available; please refresh.");
-                                setUpdateAvaliable(true);
+                                setUpdateAvailable(true);
                             } else {
-                                // At this point, everything has been precached.
+                                // At this point, everything has been pre-cached.
                                 // It's the perfect time to display a
                                 // 'Content is cached for offline use.' message.
                                 console.log("Content is cached for offline use.");
@@ -94,8 +94,8 @@ function registerValidSW(swUrl: string, setUpdateAvaliable: (is: boolean) => voi
         });
 }
 
-/** A method to make sure that the service worker exists before usig it */
-function checkValidServiceWorker(swUrl: string, setUpdateAvaliable: (is: boolean) => void) {
+/** A method to make sure that the service worker exists before using it */
+function checkValidServiceWorker(swUrl: string, setUpdateAvailable: (is: boolean) => void) {
     // Check if the service worker can be found. If it can't reload the page.
     fetch(swUrl)
         .then(response => {
@@ -113,7 +113,7 @@ function checkValidServiceWorker(swUrl: string, setUpdateAvaliable: (is: boolean
                 ).catch(e => console.error(e));
             } else {
                 // Service worker found. Proceed as normal.
-                registerValidSW(swUrl, setUpdateAvaliable);
+                registerValidSW(swUrl, setUpdateAvailable);
             }
         })
         .catch(() => {
