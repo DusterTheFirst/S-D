@@ -9,7 +9,7 @@ import React, { ChangeEvent, DragEvent, useContext, useState } from "react";
 import { MenuItemEventHandler, TriggerEvent } from "react-contexify/lib/types";
 import CardGroup from "../card/cardGroup";
 import { GlobalStateContext, Selection, SelectionType } from "../state";
-import { ExplorerAddButton, ExplorerContainer, ExplorerGroups, ExplorerHeader, ExplorerHighlight, ExplorerSearch, ExplorerSearchInput as ExporterSearchInput, ExplorerSearchX } from "../styles/explorer";
+import { ExplorerAddButton, ExplorerContainer, ExplorerGroups, ExplorerHeader, ExplorerHighlight, ExplorerSearch, ExplorerSearchInput, ExplorerSearchX } from "../styles/explorer";
 import { DownloadSelection, loadSelection, textFileReaderAsync } from "../util/file";
 import useIsTop from "../util/useIsTop";
 import CardGroupComponent from "./CardGroupComponent";
@@ -104,7 +104,7 @@ export default function Explorer() {
             {/* Header */}
             <ExplorerHeader isTop={isTop}>
                 <ExplorerSearch>
-                    <ExporterSearchInput short={search !== ""} value={search} onChange={updateSearch} />
+                    <ExplorerSearchInput short={search !== ""} value={search} onChange={updateSearch} />
                     <ExplorerSearchX hidden={search === ""} onClick={clearSearch}>
                         <FontAwesomeIcon icon={faTimes} />
                     </ExplorerSearchX>

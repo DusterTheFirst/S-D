@@ -7,7 +7,7 @@ export function wordWrapSVG(text: string, width: number, outputElement: SVGTextE
     return text.replace("\r", "").split("\n").map((x, i) => wordWrapOneLineSVG(x, width, outputElement, i !== 0)).reduce((a, b) => a + b);
 }
 
-/** Helper Function to wrap one continuos line of text in an svg */
+/** Helper Function to wrap one continuous line of text in an svg */
 function wordWrapOneLineSVG(text: string, width: number, outputElement: SVGTextElement, initialOffset = false) {
     const words = text.split(" ");
     let elementCount = 0;
